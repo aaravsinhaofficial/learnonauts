@@ -7,24 +7,33 @@ import { AccessibilityPanel, defaultAccessibilitySettings } from './components/A
 import type { AccessibilitySettings } from './components/AccessibilityPanel';
 import { BadgeSystem } from './components/BadgeSystem';
 import { ProgressTracker } from './components/ProgressTracker';
+import { AuthModal } from './components/AuthModal';
+import { UserDashboard } from './components/UserDashboard';
+import { useAuth } from './context/AuthContext';
 
 function App() {
+  const { user, isAuthenticated, login, signup, logout, updateProgress } = useAuth();
   const [currentView, setCurrentView] = useState<'welcome' | 'modules' | 'classification' | 'regression' | 'clustering' | 'neural-network' | 'introduction'>('welcome');
   const [completedModules, setCompletedModules] = useState<string[]>([]);
   const [scores, setScores] = useState<Record<string, number>>({});
   const [accessibilitySettings, setAccessibilitySettings] = useState<AccessibilitySettings>(defaultAccessibilitySettings);
   const [isAccessibilityPanelOpen, setIsAccessibilityPanelOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isUserDashboardOpen, setIsUserDashboardOpen] = useState(false);
 
-  const handleModuleComplete = (moduleId: string, score: number) => {
+  const handleModuleComplete = async (moduleId: string, score: number) => {
     console.log(`Module ${moduleId} completed with score: ${score}%`);
     
-    // Add to completed modules if not already completed
-    if (!completedModules.includes(moduleId)) {
-      setCompletedModules(prev => [...prev, moduleId]);
+    // Update progress in authentication system if user is logged in
+    if (isAuthenticated) {
+      await updateProgress(moduleId, score, 10); // Assuming 10 minutes per module
+    } else {
+      // Add to local state if not logged in
+      if (!completedModules.includes(moduleId)) {
+        setCompletedModules(prev => [...prev, moduleId]);
+      }
+      setScores(prev => ({ ...prev, [moduleId]: score }));
     }
-    
-    // Update score
-    setScores(prev => ({ ...prev, [moduleId]: score }));
     
     // Show completion message and return to modules after a delay
     setTimeout(() => {
@@ -52,6 +61,20 @@ function App() {
           </button>
         </div>
         <ClassificationGame onComplete={(score) => handleModuleComplete('classification', score)} />
+
+        {/* Authentication Modal */}
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          onLogin={login}
+          onSignup={signup}
+        />
+
+        {/* User Dashboard */}
+        <UserDashboard
+          isOpen={isUserDashboardOpen}
+          onClose={() => setIsUserDashboardOpen(false)}
+        />
       </div>
     );
   }
@@ -76,6 +99,20 @@ function App() {
           </button>
         </div>
         <ClusteringGame onComplete={(score) => handleModuleComplete('clustering', score)} />
+
+        {/* Authentication Modal */}
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          onLogin={login}
+          onSignup={signup}
+        />
+
+        {/* User Dashboard */}
+        <UserDashboard
+          isOpen={isUserDashboardOpen}
+          onClose={() => setIsUserDashboardOpen(false)}
+        />
       </div>
     );
   }
@@ -99,6 +136,20 @@ function App() {
           </button>
         </div>
         <NeuralNetworkSimulation onComplete={(score) => handleModuleComplete('neural-network', score)} />
+
+        {/* Authentication Modal */}
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          onLogin={login}
+          onSignup={signup}
+        />
+
+        {/* User Dashboard */}
+        <UserDashboard
+          isOpen={isUserDashboardOpen}
+          onClose={() => setIsUserDashboardOpen(false)}
+        />
       </div>
     );
   }
@@ -194,6 +245,20 @@ function App() {
             </button>
           </div>
         </div>
+
+        {/* Authentication Modal */}
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          onLogin={login}
+          onSignup={signup}
+        />
+
+        {/* User Dashboard */}
+        <UserDashboard
+          isOpen={isUserDashboardOpen}
+          onClose={() => setIsUserDashboardOpen(false)}
+        />
       </div>
     );
   }
@@ -217,6 +282,20 @@ function App() {
           </button>
         </div>
         <RegressionGame onComplete={(score) => handleModuleComplete('regression', score)} />
+
+        {/* Authentication Modal */}
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          onLogin={login}
+          onSignup={signup}
+        />
+
+        {/* User Dashboard */}
+        <UserDashboard
+          isOpen={isUserDashboardOpen}
+          onClose={() => setIsUserDashboardOpen(false)}
+        />
       </div>
     );
   }
@@ -297,39 +376,90 @@ function App() {
             Learn through games, puzzles, and hands-on activities designed just for you.
           </p>
 
-          <button 
-            onClick={() => setCurrentView('modules')}
-            className="bg-white text-purple-600 font-bold text-xl px-12 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-            style={{
-              backgroundColor: 'white',
-              color: '#7c3aed',
-              fontWeight: '700',
-              fontSize: '1.25rem',
-              padding: '1rem 3rem',
-              borderRadius: '1rem',
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'all 0.3s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
-            }}
-          >
-            Start Your AI Adventure! 🚀
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
+            <button 
+              onClick={() => setCurrentView('modules')}
+              className="bg-white text-purple-600 font-bold text-xl px-12 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+              style={{
+                backgroundColor: 'white',
+                color: '#7c3aed',
+                fontWeight: '700',
+                fontSize: '1.25rem',
+                padding: '1rem 3rem',
+                borderRadius: '1rem',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.3s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
+              }}
+            >
+              Start Your AI Adventure! 🚀
+            </button>
+            
+            {!isAuthenticated && (
+              <button 
+                onClick={() => setIsAuthModalOpen(true)}
+                style={{
+                  color: 'white',
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '0.75rem',
+                  padding: '0.75rem 2rem',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: '500',
+                  backdropFilter: 'blur(10px)',
+                  transition: 'all 0.3s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                }}
+              >
+                Login / Sign Up
+              </button>
+            )}
+
+            {isAuthenticated && (
+              <div style={{ color: 'white', fontSize: '1.1rem', fontWeight: '500' }}>
+                Welcome back, {user?.displayName}! 👋
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* Authentication Modal */}
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          onLogin={login}
+          onSignup={signup}
+        />
+
+        {/* User Dashboard */}
+        <UserDashboard
+          isOpen={isUserDashboardOpen}
+          onClose={() => setIsUserDashboardOpen(false)}
+        />
       </div>
     );
   }
 
   return (
-    <BadgeSystem completedModules={completedModules} scores={scores}>
+    <BadgeSystem 
+      completedModules={isAuthenticated ? Object.keys(user?.progress.moduleProgress || {}).filter(moduleId => user?.progress.moduleProgress[moduleId]?.completed) : completedModules} 
+      scores={isAuthenticated ? Object.fromEntries(Object.entries(user?.progress.moduleProgress || {}).map(([moduleId, progress]) => [moduleId, progress.bestScore])) : scores}
+    >
       <div 
         className="min-h-screen bg-gray-50 p-6"
         style={{
@@ -395,30 +525,97 @@ function App() {
                     margin: 0
                   }}
                 >
-                  AI Adventure Awaits!
+                  {isAuthenticated ? `Welcome back, ${user?.displayName}!` : 'AI Adventure Awaits!'}
                 </p>
               </div>
             </div>
-            <button 
-              onClick={() => setCurrentView('welcome')}
-              className="text-gray-600 hover:text-gray-900"
-              style={{
-                color: '#4b5563',
-                backgroundColor: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '1rem'
-              }}
-            >
-              ← Back to Welcome
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              {isAuthenticated ? (
+                <>
+                  <button 
+                    onClick={() => setIsUserDashboardOpen(true)}
+                    style={{
+                      color: '#7c3aed',
+                      backgroundColor: 'transparent',
+                      border: '1px solid #7c3aed',
+                      borderRadius: '0.5rem',
+                      padding: '0.5rem 1rem',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    My Profile
+                  </button>
+                  <button 
+                    onClick={() => setAccessibilitySettings(prev => ({ ...prev, soundEnabled: !prev.soundEnabled }))}
+                    style={{
+                      color: '#4b5563',
+                      backgroundColor: 'transparent',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '0.5rem',
+                      padding: '0.5rem',
+                      cursor: 'pointer',
+                      fontSize: '1rem'
+                    }}
+                  >
+                    🔧
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button 
+                    onClick={() => setIsAuthModalOpen(true)}
+                    style={{
+                      color: '#7c3aed',
+                      backgroundColor: 'transparent',
+                      border: '1px solid #7c3aed',
+                      borderRadius: '0.5rem',
+                      padding: '0.5rem 1rem',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    Login / Sign Up
+                  </button>
+                  <button 
+                    onClick={() => setAccessibilitySettings(prev => ({ ...prev, soundEnabled: !prev.soundEnabled }))}
+                    style={{
+                      color: '#4b5563',
+                      backgroundColor: 'transparent',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '0.5rem',
+                      padding: '0.5rem',
+                      cursor: 'pointer',
+                      fontSize: '1rem'
+                    }}
+                  >
+                    🔧
+                  </button>
+                </>
+              )}
+              <button 
+                onClick={() => setCurrentView('welcome')}
+                className="text-gray-600 hover:text-gray-900"
+                style={{
+                  color: '#4b5563',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '1rem'
+                }}
+              >
+                ← Back to Welcome
+              </button>
+            </div>
           </div>
         </header>
 
         {/* Progress Tracker */}
         <ProgressTracker 
-          completedModules={completedModules} 
-          scores={scores} 
+          completedModules={isAuthenticated ? Object.keys(user?.progress.moduleProgress || {}).filter(moduleId => user?.progress.moduleProgress[moduleId]?.completed) : completedModules} 
+          scores={isAuthenticated ? Object.fromEntries(Object.entries(user?.progress.moduleProgress || {}).map(([moduleId, progress]) => [moduleId, progress.bestScore])) : scores} 
           className="mb-8"
         />
 
@@ -504,7 +701,7 @@ function App() {
               position: 'relative'
             }}
           >
-            {completedModules.includes('classification') && (
+            {(isAuthenticated ? user?.progress.moduleProgress['classification']?.completed : completedModules.includes('classification')) && (
               <div style={{
                 position: 'absolute',
                 top: '1rem',
@@ -546,7 +743,7 @@ function App() {
                 marginBottom: '0.5rem'
               }}
             >
-              Sorting Things {completedModules.includes('classification') && '🏆'}
+              Sorting Things {(isAuthenticated ? user?.progress.moduleProgress['classification']?.completed : completedModules.includes('classification')) && '🏆'}
             </h3>
             <p 
               className="text-gray-600 mb-4"
@@ -556,9 +753,9 @@ function App() {
               }}
             >
               Learn how computers can sort and categorize
-              {completedModules.includes('classification') && scores.classification && (
+              {(isAuthenticated ? user?.progress.moduleProgress['classification']?.completed : completedModules.includes('classification')) && (
                 <><br /><span style={{ color: '#10b981', fontWeight: '500' }}>
-                  Best Score: {scores.classification}%
+                  Best Score: {isAuthenticated ? user?.progress.moduleProgress['classification']?.bestScore : scores.classification}%
                 </span></>
               )}
             </p>
@@ -566,7 +763,7 @@ function App() {
               className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
               onClick={() => setCurrentView('classification')}
               style={{
-                backgroundColor: completedModules.includes('classification') ? '#10b981' : '#3b82f6',
+                backgroundColor: (isAuthenticated ? user?.progress.moduleProgress['classification']?.completed : completedModules.includes('classification')) ? '#10b981' : '#3b82f6',
                 color: 'white',
                 fontWeight: '500',
                 padding: '0.5rem 1rem',
@@ -576,7 +773,7 @@ function App() {
                 transition: 'background-color 0.2s'
               }}
             >
-              {completedModules.includes('classification') ? 'Play Again' : 'Play Game'}
+              {(isAuthenticated ? user?.progress.moduleProgress['classification']?.completed : completedModules.includes('classification')) ? 'Play Again' : 'Play Game'}
             </button>
           </div>
 
@@ -591,7 +788,7 @@ function App() {
               position: 'relative'
             }}
           >
-            {completedModules.includes('clustering') && (
+            {(isAuthenticated ? user?.progress.moduleProgress['clustering']?.completed : completedModules.includes('clustering')) && (
               <div style={{
                 position: 'absolute',
                 top: '1rem',
@@ -633,7 +830,7 @@ function App() {
                 marginBottom: '0.5rem'
               }}
             >
-              Pattern Detective {completedModules.includes('clustering') && '🏆'}
+              Pattern Detective {(isAuthenticated ? user?.progress.moduleProgress['clustering']?.completed : completedModules.includes('clustering')) && '🏆'}
             </h3>
             <p 
               className="text-gray-600 mb-4"
@@ -643,9 +840,9 @@ function App() {
               }}
             >
               Find hidden groups in data
-              {completedModules.includes('clustering') && scores.clustering && (
+              {(isAuthenticated ? user?.progress.moduleProgress['clustering']?.completed : completedModules.includes('clustering')) && (
                 <><br /><span style={{ color: '#10b981', fontWeight: '500' }}>
-                  Best Score: {scores.clustering}%
+                  Best Score: {isAuthenticated ? user?.progress.moduleProgress['clustering']?.bestScore : scores.clustering}%
                 </span></>
               )}
             </p>
@@ -653,7 +850,7 @@ function App() {
               className="bg-purple-500 hover:bg-purple-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
               onClick={() => setCurrentView('clustering')}
               style={{
-                backgroundColor: completedModules.includes('clustering') ? '#10b981' : '#8b5cf6',
+                backgroundColor: (isAuthenticated ? user?.progress.moduleProgress['clustering']?.completed : completedModules.includes('clustering')) ? '#10b981' : '#8b5cf6',
                 color: 'white',
                 fontWeight: '500',
                 padding: '0.5rem 1rem',
@@ -663,7 +860,7 @@ function App() {
                 transition: 'background-color 0.2s'
               }}
             >
-              {completedModules.includes('clustering') ? 'Play Again' : 'Play Game'}
+              {(isAuthenticated ? user?.progress.moduleProgress['clustering']?.completed : completedModules.includes('clustering')) ? 'Play Again' : 'Play Game'}
             </button>
           </div>
 
@@ -678,7 +875,7 @@ function App() {
               position: 'relative'
             }}
           >
-            {completedModules.includes('regression') && (
+            {(isAuthenticated ? user?.progress.moduleProgress['regression']?.completed : completedModules.includes('regression')) && (
               <div style={{
                 position: 'absolute',
                 top: '1rem',
@@ -720,7 +917,7 @@ function App() {
                 marginBottom: '0.5rem'
               }}
             >
-              Prediction Explorer {completedModules.includes('regression') && '🏆'}
+              Prediction Explorer {(isAuthenticated ? user?.progress.moduleProgress['regression']?.completed : completedModules.includes('regression')) && '🏆'}
             </h3>
             <p 
               className="text-gray-600 mb-4"
@@ -730,9 +927,9 @@ function App() {
               }}
             >
               Learn to predict trends and patterns
-              {completedModules.includes('regression') && scores.regression && (
+              {(isAuthenticated ? user?.progress.moduleProgress['regression']?.completed : completedModules.includes('regression')) && (
                 <><br /><span style={{ color: '#10b981', fontWeight: '500' }}>
-                  Best Score: {scores.regression}%
+                  Best Score: {isAuthenticated ? user?.progress.moduleProgress['regression']?.bestScore : scores.regression}%
                 </span></>
               )}
             </p>
@@ -740,7 +937,7 @@ function App() {
               className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
               onClick={() => setCurrentView('regression')}
               style={{
-                backgroundColor: completedModules.includes('regression') ? '#10b981' : '#10b981',
+                backgroundColor: (isAuthenticated ? user?.progress.moduleProgress['regression']?.completed : completedModules.includes('regression')) ? '#10b981' : '#10b981',
                 color: 'white',
                 fontWeight: '500',
                 padding: '0.5rem 1rem',
@@ -750,7 +947,7 @@ function App() {
                 transition: 'background-color 0.2s'
               }}
             >
-              {completedModules.includes('regression') ? 'Play Again' : 'Play Game'}
+              {(isAuthenticated ? user?.progress.moduleProgress['regression']?.completed : completedModules.includes('regression')) ? 'Play Again' : 'Play Game'}
             </button>
           </div>
 
@@ -765,7 +962,7 @@ function App() {
               position: 'relative'
             }}
           >
-            {completedModules.includes('neural-network') && (
+            {(isAuthenticated ? user?.progress.moduleProgress['neural-network']?.completed : completedModules.includes('neural-network')) && (
               <div style={{
                 position: 'absolute',
                 top: '1rem',
@@ -807,7 +1004,7 @@ function App() {
                 marginBottom: '0.5rem'
               }}
             >
-              Neural Network Lab {completedModules.includes('neural-network') && '🏆'}
+              Neural Network Lab {(isAuthenticated ? user?.progress.moduleProgress['neural-network']?.completed : completedModules.includes('neural-network')) && '🏆'}
             </h3>
             <p 
               className="text-gray-600 mb-4"
@@ -817,9 +1014,9 @@ function App() {
               }}
             >
               Watch AI neurons think and learn
-              {completedModules.includes('neural-network') && scores['neural-network'] && (
+              {(isAuthenticated ? user?.progress.moduleProgress['neural-network']?.completed : completedModules.includes('neural-network')) && (
                 <><br /><span style={{ color: '#10b981', fontWeight: '500' }}>
-                  Best Score: {scores['neural-network']}%
+                  Best Score: {isAuthenticated ? user?.progress.moduleProgress['neural-network']?.bestScore : scores['neural-network']}%
                 </span></>
               )}
             </p>
@@ -827,7 +1024,7 @@ function App() {
               className="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
               onClick={() => setCurrentView('neural-network')}
               style={{
-                backgroundColor: completedModules.includes('neural-network') ? '#10b981' : '#ef4444',
+                backgroundColor: (isAuthenticated ? user?.progress.moduleProgress['neural-network']?.completed : completedModules.includes('neural-network')) ? '#10b981' : '#ef4444',
                 color: 'white',
                 fontWeight: '500',
                 padding: '0.5rem 1rem',
@@ -837,7 +1034,7 @@ function App() {
                 transition: 'background-color 0.2s'
               }}
             >
-              {completedModules.includes('neural-network') ? 'Play Again' : 'Explore'}
+              {(isAuthenticated ? user?.progress.moduleProgress['neural-network']?.completed : completedModules.includes('neural-network')) ? 'Play Again' : 'Explore'}
             </button>
           </div>
 
@@ -912,6 +1109,20 @@ function App() {
         onSettingsChange={setAccessibilitySettings}
         isOpen={isAccessibilityPanelOpen}
         onToggle={() => setIsAccessibilityPanelOpen(!isAccessibilityPanelOpen)}
+      />
+
+      {/* Authentication Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onLogin={login}
+        onSignup={signup}
+      />
+
+      {/* User Dashboard */}
+      <UserDashboard
+        isOpen={isUserDashboardOpen}
+        onClose={() => setIsUserDashboardOpen(false)}
       />
       </div>
     </BadgeSystem>

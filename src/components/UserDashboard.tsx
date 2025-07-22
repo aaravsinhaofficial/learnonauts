@@ -50,49 +50,112 @@ export function UserDashboard({ isOpen, onClose }: UserDashboardProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 50,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1rem'
+        }}
         onClick={onClose}
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
-          className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+          style={{
+            backgroundColor: 'white',
+            borderRadius: '1rem',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            maxWidth: '56rem',
+            width: '100%',
+            maxHeight: '90vh',
+            overflow: 'hidden'
+          }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-2xl">
+          <div style={{
+            background: 'linear-gradient(to right, #7c3aed, #3b82f6)',
+            color: 'white',
+            padding: '1.5rem'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{
+                  width: '4rem',
+                  height: '4rem',
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.5rem'
+                }}>
                   {user.avatar || '🚀'}
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold">{user.displayName}</h2>
-                  <p className="text-blue-100">@{user.username}</p>
-                  <div className="flex items-center gap-4 mt-2 text-sm">
-                    <span className="flex items-center gap-1">
+                  <h2 style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0 }}>{user.displayName}</h2>
+                  <p style={{ color: 'rgba(147, 197, 253, 1)', margin: '0.25rem 0' }}>@{user.username}</p>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '1rem', 
+                    marginTop: '0.5rem', 
+                    fontSize: '0.875rem' 
+                  }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                       <Calendar size={14} />
                       Joined {user.createdAt.toLocaleDateString()}
                     </span>
-                    <span className="flex items-center gap-1">
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                       <Zap size={14} />
                       {user.progress.currentStreak} day streak
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <button
                   onClick={handleLogout}
-                  className="text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-lg transition-colors flex items-center gap-2"
+                  style={{
+                    color: 'white',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    padding: '0.5rem',
+                    borderRadius: '0.5rem',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
                   <LogOut size={18} />
-                  <span className="hidden sm:inline">Sign Out</span>
+                  <span style={{ display: window.innerWidth >= 640 ? 'inline' : 'none' }}>Sign Out</span>
                 </button>
                 <button
                   onClick={onClose}
-                  className="text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-lg transition-colors"
+                  style={{
+                    color: 'white',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    padding: '0.5rem',
+                    borderRadius: '0.5rem',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s',
+                    fontSize: '1.25rem'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   aria-label="Close"
                 >
                   ✕

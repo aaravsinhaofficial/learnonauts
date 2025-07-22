@@ -117,28 +117,65 @@ export function AuthModal({ isOpen, onClose, onLogin, onSignup }: AuthModalProps
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 50,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1rem'
+        }}
         onClick={handleClose}
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
-          className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+          style={{
+            backgroundColor: 'white',
+            borderRadius: '1rem',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            maxWidth: '28rem',
+            width: '100%',
+            maxHeight: '90vh',
+            overflowY: 'auto'
+          }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6 rounded-t-2xl">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+          <div style={{
+            background: 'linear-gradient(to right, #7c3aed, #3b82f6)',
+            color: 'white',
+            padding: '1.5rem',
+            borderRadius: '1rem 1rem 0 0'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{
+                  width: '3rem',
+                  height: '3rem',
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
                   {mode === 'login' ? <LogIn size={24} /> : <UserPlus size={24} />}
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold">
+                  <h2 style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0 }}>
                     {mode === 'login' ? 'Welcome Back!' : 'Join Learnonauts!'}
                   </h2>
-                  <p className="text-blue-100 text-sm">
+                  <p style={{ 
+                    color: 'rgba(147, 197, 253, 1)', 
+                    fontSize: '0.875rem', 
+                    margin: '0.25rem 0 0 0' 
+                  }}>
                     {mode === 'login' 
                       ? 'Continue your AI learning adventure' 
                       : 'Start your AI learning journey today'
@@ -148,7 +185,18 @@ export function AuthModal({ isOpen, onClose, onLogin, onSignup }: AuthModalProps
               </div>
               <button
                 onClick={handleClose}
-                className="text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-lg transition-colors"
+                style={{
+                  color: 'white',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  padding: '0.5rem',
+                  borderRadius: '0.5rem',
+                  cursor: 'pointer',
+                  fontSize: '1.25rem',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 aria-label="Close"
               >
                 ✕
@@ -157,26 +205,48 @@ export function AuthModal({ isOpen, onClose, onLogin, onSignup }: AuthModalProps
           </div>
 
           {/* Content */}
-          <div className="p-6">
+          <div style={{ padding: '1.5rem' }}>
             {/* Tab Switcher */}
-            <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
+            <div style={{
+              display: 'flex',
+              backgroundColor: '#f3f4f6',
+              borderRadius: '0.5rem',
+              padding: '0.25rem',
+              marginBottom: '1.5rem'
+            }}>
               <button
                 onClick={() => handleModeSwitch('login')}
-                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                  mode === 'login'
-                    ? 'bg-white text-purple-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
+                style={{
+                  flex: 1,
+                  padding: '0.5rem 1rem',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  transition: 'all 0.2s',
+                  border: 'none',
+                  cursor: 'pointer',
+                  backgroundColor: mode === 'login' ? 'white' : 'transparent',
+                  color: mode === 'login' ? '#7c3aed' : '#4b5563',
+                  boxShadow: mode === 'login' ? '0 1px 2px 0 rgba(0, 0, 0, 0.05)' : 'none'
+                }}
               >
                 Sign In
               </button>
               <button
                 onClick={() => handleModeSwitch('signup')}
-                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                  mode === 'signup'
-                    ? 'bg-white text-purple-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
+                style={{
+                  flex: 1,
+                  padding: '0.5rem 1rem',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  transition: 'all 0.2s',
+                  border: 'none',
+                  cursor: 'pointer',
+                  backgroundColor: mode === 'signup' ? 'white' : 'transparent',
+                  color: mode === 'signup' ? '#7c3aed' : '#4b5563',
+                  boxShadow: mode === 'signup' ? '0 1px 2px 0 rgba(0, 0, 0, 0.05)' : 'none'
+                }}
               >
                 Create Account
               </button>
@@ -184,15 +254,33 @@ export function AuthModal({ isOpen, onClose, onLogin, onSignup }: AuthModalProps
 
             {/* Demo Account Button */}
             {mode === 'login' && (
-              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-center justify-between">
+              <div style={{
+                marginBottom: '1.5rem',
+                padding: '1rem',
+                backgroundColor: '#eff6ff',
+                border: '1px solid #bfdbfe',
+                borderRadius: '0.5rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
-                    <h4 className="font-medium text-blue-800">Try Demo Account</h4>
-                    <p className="text-sm text-blue-600">Explore with sample progress data</p>
+                    <h4 style={{ fontWeight: '500', color: '#1e40af', margin: '0 0 0.25rem 0' }}>Try Demo Account</h4>
+                    <p style={{ fontSize: '0.875rem', color: '#2563eb', margin: 0 }}>Explore with sample progress data</p>
                   </div>
                   <button
                     onClick={loadDemoAccount}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    style={{
+                      backgroundColor: '#2563eb',
+                      color: 'white',
+                      padding: '0.5rem 1rem',
+                      borderRadius: '0.5rem',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      border: 'none',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
                   >
                     Load Demo
                   </button>
@@ -205,10 +293,20 @@ export function AuthModal({ isOpen, onClose, onLogin, onSignup }: AuthModalProps
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700"
+                style={{
+                  marginBottom: '1rem',
+                  padding: '0.75rem',
+                  backgroundColor: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '0.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  color: '#b91c1c'
+                }}
               >
                 <AlertCircle size={20} />
-                <span className="text-sm">{error}</span>
+                <span style={{ fontSize: '0.875rem' }}>{error}</span>
               </motion.div>
             )}
 
@@ -216,28 +314,72 @@ export function AuthModal({ isOpen, onClose, onLogin, onSignup }: AuthModalProps
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-green-700"
+                style={{
+                  marginBottom: '1rem',
+                  padding: '0.75rem',
+                  backgroundColor: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  borderRadius: '0.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  color: '#15803d'
+                }}
               >
                 <CheckCircle size={20} />
-                <span className="text-sm">{success}</span>
+                <span style={{ fontSize: '0.875rem' }}>{success}</span>
               </motion.div>
             )}
 
             {/* Forms */}
             {mode === 'login' ? (
-              <form onSubmit={handleLogin} className="space-y-4">
+              <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {/* Email */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label style={{ 
+                    display: 'block', 
+                    fontSize: '0.875rem', 
+                    fontWeight: '500', 
+                    color: '#374151', 
+                    marginBottom: '0.5rem' 
+                  }}>
                     Email Address
                   </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <div style={{ position: 'relative' }}>
+                    <Mail 
+                      style={{ 
+                        position: 'absolute', 
+                        left: '0.75rem', 
+                        top: '50%', 
+                        transform: 'translateY(-50%)', 
+                        color: '#9ca3af' 
+                      }} 
+                      size={18} 
+                    />
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      style={{
+                        width: '100%',
+                        paddingLeft: '2.5rem',
+                        paddingRight: '1rem',
+                        paddingTop: '0.75rem',
+                        paddingBottom: '0.75rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.5rem',
+                        fontSize: '1rem',
+                        transition: 'all 0.2s',
+                        outline: 'none'
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#7c3aed';
+                        e.target.style.boxShadow = '0 0 0 3px rgba(124, 58, 237, 0.1)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#d1d5db';
+                        e.target.style.boxShadow = 'none';
+                      }}
                       placeholder="your.email@example.com"
                       required
                     />
@@ -246,23 +388,69 @@ export function AuthModal({ isOpen, onClose, onLogin, onSignup }: AuthModalProps
 
                 {/* Password */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label style={{ 
+                    display: 'block', 
+                    fontSize: '0.875rem', 
+                    fontWeight: '500', 
+                    color: '#374151', 
+                    marginBottom: '0.5rem' 
+                  }}>
                     Password
                   </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <div style={{ position: 'relative' }}>
+                    <Lock 
+                      style={{ 
+                        position: 'absolute', 
+                        left: '0.75rem', 
+                        top: '50%', 
+                        transform: 'translateY(-50%)', 
+                        color: '#9ca3af' 
+                      }} 
+                      size={18} 
+                    />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      style={{
+                        width: '100%',
+                        paddingLeft: '2.5rem',
+                        paddingRight: '3rem',
+                        paddingTop: '0.75rem',
+                        paddingBottom: '0.75rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.5rem',
+                        fontSize: '1rem',
+                        transition: 'all 0.2s',
+                        outline: 'none'
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#7c3aed';
+                        e.target.style.boxShadow = '0 0 0 3px rgba(124, 58, 237, 0.1)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#d1d5db';
+                        e.target.style.boxShadow = 'none';
+                      }}
                       placeholder="Enter your password"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      style={{
+                        position: 'absolute',
+                        right: '0.75rem',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#9ca3af',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: 'color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#6b7280'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -272,10 +460,43 @@ export function AuthModal({ isOpen, onClose, onLogin, onSignup }: AuthModalProps
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  style={{
+                    width: '100%',
+                    background: 'linear-gradient(to right, #7c3aed, #3b82f6)',
+                    color: 'white',
+                    fontWeight: '500',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '0.5rem',
+                    border: 'none',
+                    cursor: isLoading ? 'not-allowed' : 'pointer',
+                    opacity: isLoading ? 0.5 : 1,
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    fontSize: '1rem'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isLoading) {
+                      e.currentTarget.style.background = 'linear-gradient(to right, #6d28d9, #2563eb)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isLoading) {
+                      e.currentTarget.style.background = 'linear-gradient(to right, #7c3aed, #3b82f6)';
+                    }
+                  }}
                 >
                   {isLoading ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <div style={{
+                      width: '1.25rem',
+                      height: '1.25rem',
+                      border: '2px solid white',
+                      borderTop: '2px solid transparent',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }} />
                   ) : (
                     <>
                       <LogIn size={18} />
@@ -285,19 +506,53 @@ export function AuthModal({ isOpen, onClose, onLogin, onSignup }: AuthModalProps
                 </button>
               </form>
             ) : (
-              <form onSubmit={handleSignup} className="space-y-4">
+              <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {/* Display Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label style={{ 
+                    display: 'block', 
+                    fontSize: '0.875rem', 
+                    fontWeight: '500', 
+                    color: '#374151', 
+                    marginBottom: '0.5rem' 
+                  }}>
                     Display Name
                   </label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <div style={{ position: 'relative' }}>
+                    <User 
+                      style={{ 
+                        position: 'absolute', 
+                        left: '0.75rem', 
+                        top: '50%', 
+                        transform: 'translateY(-50%)', 
+                        color: '#9ca3af' 
+                      }} 
+                      size={18} 
+                    />
                     <input
                       type="text"
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      style={{
+                        width: '100%',
+                        paddingLeft: '2.5rem',
+                        paddingRight: '1rem',
+                        paddingTop: '0.75rem',
+                        paddingBottom: '0.75rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.5rem',
+                        fontSize: '1rem',
+                        transition: 'all 0.2s',
+                        outline: 'none'
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#7c3aed';
+                        e.target.style.boxShadow = '0 0 0 3px rgba(124, 58, 237, 0.1)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#d1d5db';
+                        e.target.style.boxShadow = 'none';
+                      }}
                       placeholder="What should we call you?"
                       required
                     />
@@ -306,16 +561,50 @@ export function AuthModal({ isOpen, onClose, onLogin, onSignup }: AuthModalProps
 
                 {/* Username */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label style={{ 
+                    display: 'block', 
+                    fontSize: '0.875rem', 
+                    fontWeight: '500', 
+                    color: '#374151', 
+                    marginBottom: '0.5rem' 
+                  }}>
                     Username
                   </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">@</span>
+                  <div style={{ position: 'relative' }}>
+                    <span style={{ 
+                      position: 'absolute', 
+                      left: '0.75rem', 
+                      top: '50%', 
+                      transform: 'translateY(-50%)', 
+                      color: '#9ca3af',
+                      fontSize: '1rem'
+                    }}>
+                      @
+                    </span>
                     <input
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-                      className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      style={{
+                        width: '100%',
+                        paddingLeft: '2rem',
+                        paddingRight: '1rem',
+                        paddingTop: '0.75rem',
+                        paddingBottom: '0.75rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.5rem',
+                        fontSize: '1rem',
+                        transition: 'all 0.2s',
+                        outline: 'none'
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#7c3aed';
+                        e.target.style.boxShadow = '0 0 0 3px rgba(124, 58, 237, 0.1)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#d1d5db';
+                        e.target.style.boxShadow = 'none';
+                      }}
                       placeholder="choose_username"
                       required
                     />
@@ -324,16 +613,50 @@ export function AuthModal({ isOpen, onClose, onLogin, onSignup }: AuthModalProps
 
                 {/* Email */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label style={{ 
+                    display: 'block', 
+                    fontSize: '0.875rem', 
+                    fontWeight: '500', 
+                    color: '#374151', 
+                    marginBottom: '0.5rem' 
+                  }}>
                     Email Address
                   </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <div style={{ position: 'relative' }}>
+                    <Mail 
+                      style={{ 
+                        position: 'absolute', 
+                        left: '0.75rem', 
+                        top: '50%', 
+                        transform: 'translateY(-50%)', 
+                        color: '#9ca3af' 
+                      }} 
+                      size={18} 
+                    />
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      style={{
+                        width: '100%',
+                        paddingLeft: '2.5rem',
+                        paddingRight: '1rem',
+                        paddingTop: '0.75rem',
+                        paddingBottom: '0.75rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.5rem',
+                        fontSize: '1rem',
+                        transition: 'all 0.2s',
+                        outline: 'none'
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#7c3aed';
+                        e.target.style.boxShadow = '0 0 0 3px rgba(124, 58, 237, 0.1)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#d1d5db';
+                        e.target.style.boxShadow = 'none';
+                      }}
                       placeholder="your.email@example.com"
                       required
                     />
@@ -342,14 +665,36 @@ export function AuthModal({ isOpen, onClose, onLogin, onSignup }: AuthModalProps
 
                 {/* Age (Optional) */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label style={{ 
+                    display: 'block', 
+                    fontSize: '0.875rem', 
+                    fontWeight: '500', 
+                    color: '#374151', 
+                    marginBottom: '0.5rem' 
+                  }}>
                     Age (Optional)
                   </label>
                   <input
                     type="number"
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem 1rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '0.5rem',
+                      fontSize: '1rem',
+                      transition: 'all 0.2s',
+                      outline: 'none'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#7c3aed';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(124, 58, 237, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#d1d5db';
+                      e.target.style.boxShadow = 'none';
+                    }}
                     placeholder="How old are you?"
                     min="5"
                     max="120"
@@ -358,23 +703,69 @@ export function AuthModal({ isOpen, onClose, onLogin, onSignup }: AuthModalProps
 
                 {/* Password */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label style={{ 
+                    display: 'block', 
+                    fontSize: '0.875rem', 
+                    fontWeight: '500', 
+                    color: '#374151', 
+                    marginBottom: '0.5rem' 
+                  }}>
                     Password
                   </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <div style={{ position: 'relative' }}>
+                    <Lock 
+                      style={{ 
+                        position: 'absolute', 
+                        left: '0.75rem', 
+                        top: '50%', 
+                        transform: 'translateY(-50%)', 
+                        color: '#9ca3af' 
+                      }} 
+                      size={18} 
+                    />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      style={{
+                        width: '100%',
+                        paddingLeft: '2.5rem',
+                        paddingRight: '3rem',
+                        paddingTop: '0.75rem',
+                        paddingBottom: '0.75rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.5rem',
+                        fontSize: '1rem',
+                        transition: 'all 0.2s',
+                        outline: 'none'
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#7c3aed';
+                        e.target.style.boxShadow = '0 0 0 3px rgba(124, 58, 237, 0.1)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#d1d5db';
+                        e.target.style.boxShadow = 'none';
+                      }}
                       placeholder="Create a secure password"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      style={{
+                        position: 'absolute',
+                        right: '0.75rem',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#9ca3af',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: 'color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#6b7280'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -383,23 +774,69 @@ export function AuthModal({ isOpen, onClose, onLogin, onSignup }: AuthModalProps
 
                 {/* Confirm Password */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label style={{ 
+                    display: 'block', 
+                    fontSize: '0.875rem', 
+                    fontWeight: '500', 
+                    color: '#374151', 
+                    marginBottom: '0.5rem' 
+                  }}>
                     Confirm Password
                   </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <div style={{ position: 'relative' }}>
+                    <Lock 
+                      style={{ 
+                        position: 'absolute', 
+                        left: '0.75rem', 
+                        top: '50%', 
+                        transform: 'translateY(-50%)', 
+                        color: '#9ca3af' 
+                      }} 
+                      size={18} 
+                    />
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      style={{
+                        width: '100%',
+                        paddingLeft: '2.5rem',
+                        paddingRight: '3rem',
+                        paddingTop: '0.75rem',
+                        paddingBottom: '0.75rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.5rem',
+                        fontSize: '1rem',
+                        transition: 'all 0.2s',
+                        outline: 'none'
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#7c3aed';
+                        e.target.style.boxShadow = '0 0 0 3px rgba(124, 58, 237, 0.1)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#d1d5db';
+                        e.target.style.boxShadow = 'none';
+                      }}
                       placeholder="Confirm your password"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      style={{
+                        position: 'absolute',
+                        right: '0.75rem',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#9ca3af',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: 'color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#6b7280'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}
                     >
                       {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -409,10 +846,43 @@ export function AuthModal({ isOpen, onClose, onLogin, onSignup }: AuthModalProps
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  style={{
+                    width: '100%',
+                    background: 'linear-gradient(to right, #7c3aed, #3b82f6)',
+                    color: 'white',
+                    fontWeight: '500',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '0.5rem',
+                    border: 'none',
+                    cursor: isLoading ? 'not-allowed' : 'pointer',
+                    opacity: isLoading ? 0.5 : 1,
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    fontSize: '1rem'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isLoading) {
+                      e.currentTarget.style.background = 'linear-gradient(to right, #6d28d9, #2563eb)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isLoading) {
+                      e.currentTarget.style.background = 'linear-gradient(to right, #7c3aed, #3b82f6)';
+                    }
+                  }}
                 >
                   {isLoading ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <div style={{
+                      width: '1.25rem',
+                      height: '1.25rem',
+                      border: '2px solid white',
+                      borderTop: '2px solid transparent',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }} />
                   ) : (
                     <>
                       <UserPlus size={18} />
@@ -424,11 +894,34 @@ export function AuthModal({ isOpen, onClose, onLogin, onSignup }: AuthModalProps
             )}
 
             {/* Footer */}
-            <div className="mt-6 pt-4 border-t border-gray-200 text-center text-sm text-gray-600">
-              <p>
+            <div style={{
+              marginTop: '1.5rem',
+              paddingTop: '1rem',
+              borderTop: '1px solid #e5e7eb',
+              textAlign: 'center',
+              fontSize: '0.875rem',
+              color: '#6b7280'
+            }}>
+              <p style={{ margin: 0 }}>
                 By {mode === 'login' ? 'signing in' : 'creating an account'}, you agree to our{' '}
-                <button className="text-purple-600 hover:underline">Terms of Service</button> and{' '}
-                <button className="text-purple-600 hover:underline">Privacy Policy</button>
+                <button style={{
+                  color: '#7c3aed',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  textDecoration: 'underline'
+                }}>
+                  Terms of Service
+                </button> and{' '}
+                <button style={{
+                  color: '#7c3aed',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  textDecoration: 'underline'
+                }}>
+                  Privacy Policy
+                </button>
               </p>
             </div>
           </div>
