@@ -1,10 +1,19 @@
 import { useState } from 'react';
 import { ClassificationGame } from './components/modules/ClassificationGame';
+import { RegressionGame } from './components/modules/RegressionGame';
+import { ClusteringGame } from './components/modules/ClusteringGame';
+import { NeuralNetworkSimulation } from './components/modules/NeuralNetworkSimulation';
+import { AccessibilityPanel, defaultAccessibilitySettings } from './components/AccessibilityPanel';
+import type { AccessibilitySettings } from './components/AccessibilityPanel';
+import { BadgeSystem } from './components/BadgeSystem';
+import { ProgressTracker } from './components/ProgressTracker';
 
 function App() {
-  const [currentView, setCurrentView] = useState<'welcome' | 'modules' | 'classification' | 'introduction' | 'prediction'>('welcome');
+  const [currentView, setCurrentView] = useState<'welcome' | 'modules' | 'classification' | 'regression' | 'clustering' | 'neural-network' | 'introduction'>('welcome');
   const [completedModules, setCompletedModules] = useState<string[]>([]);
   const [scores, setScores] = useState<Record<string, number>>({});
+  const [accessibilitySettings, setAccessibilitySettings] = useState<AccessibilitySettings>(defaultAccessibilitySettings);
+  const [isAccessibilityPanelOpen, setIsAccessibilityPanelOpen] = useState(false);
 
   const handleModuleComplete = (moduleId: string, score: number) => {
     console.log(`Module ${moduleId} completed with score: ${score}%`);
@@ -43,6 +52,75 @@ function App() {
           </button>
         </div>
         <ClassificationGame onComplete={(score) => handleModuleComplete('classification', score)} />
+      </div>
+    );
+  }
+
+  if (currentView === 'regression') {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+        <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
+          <button 
+            onClick={() => setCurrentView('modules')}
+            style={{
+              color: '#4b5563',
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              padding: '0.5rem'
+            }}
+          >
+            ← Back to Modules
+          </button>
+        </div>
+        <RegressionGame onComplete={(score) => handleModuleComplete('regression', score)} />
+      </div>
+    );
+  }
+
+  if (currentView === 'clustering') {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+        <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
+          <button 
+            onClick={() => setCurrentView('modules')}
+            style={{
+              color: '#4b5563',
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              padding: '0.5rem'
+            }}
+          >
+            ← Back to Modules
+          </button>
+        </div>
+        <ClusteringGame onComplete={(score) => handleModuleComplete('clustering', score)} />
+      </div>
+    );
+  }
+
+  if (currentView === 'neural-network') {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+        <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
+          <button 
+            onClick={() => setCurrentView('modules')}
+            style={{
+              color: '#4b5563',
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              padding: '0.5rem'
+            }}
+          >
+            ← Back to Modules
+          </button>
+        </div>
+        <NeuralNetworkSimulation onComplete={(score) => handleModuleComplete('neural-network', score)} />
       </div>
     );
   }
@@ -142,10 +220,10 @@ function App() {
     );
   }
 
-  if (currentView === 'prediction') {
+  if (currentView === 'regression') {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', padding: '2rem' }}>
-        <div style={{ marginBottom: '2rem' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+        <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
           <button 
             onClick={() => setCurrentView('modules')}
             style={{
@@ -153,45 +231,14 @@ function App() {
               backgroundColor: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              fontSize: '1rem'
+              fontSize: '1rem',
+              padding: '0.5rem'
             }}
           >
             ← Back to Modules
           </button>
         </div>
-        
-        <div style={{ maxWidth: '4rem', margin: '0 auto', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '3rem', fontWeight: '700', color: '#111827', marginBottom: '2rem' }}>
-            Predicting Numbers ⚡
-          </h1>
-          
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '1rem',
-            padding: '3rem',
-            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-            marginBottom: '2rem'
-          }}>
-            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🔮</div>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#111827', marginBottom: '1rem' }}>
-              Coming Soon!
-            </h3>
-            <p style={{ color: '#4b5563', marginBottom: '2rem' }}>
-              This exciting prediction game is being developed! Soon you'll be able to predict trends, 
-              make forecasts, and see how AI can help us understand patterns in data.
-            </p>
-            <div style={{ 
-              backgroundColor: '#10b981', 
-              color: 'white', 
-              padding: '0.5rem 1rem', 
-              borderRadius: '0.5rem',
-              display: 'inline-block',
-              fontSize: '0.9rem'
-            }}>
-              In Development
-            </div>
-          </div>
-        </div>
+        <RegressionGame onComplete={(score) => handleModuleComplete('regression', score)} />
       </div>
     );
   }
@@ -304,14 +351,15 @@ function App() {
   }
 
   return (
-    <div 
-      className="min-h-screen bg-gray-50 p-6"
-      style={{
-        minHeight: '100vh',
-        backgroundColor: '#f8fafc',
-        padding: '1.5rem'
-      }}
-    >
+    <BadgeSystem completedModules={completedModules} scores={scores}>
+      <div 
+        className="min-h-screen bg-gray-50 p-6"
+        style={{
+          minHeight: '100vh',
+          backgroundColor: '#f8fafc',
+          padding: '1.5rem'
+        }}
+      >
       <div 
         className="max-w-6xl mx-auto"
         style={{
@@ -388,6 +436,13 @@ function App() {
             </button>
           </div>
         </header>
+
+        {/* Progress Tracker */}
+        <ProgressTracker 
+          completedModules={completedModules} 
+          scores={scores} 
+          className="mb-8"
+        />
 
         <div 
           className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
@@ -554,15 +609,208 @@ function App() {
               borderRadius: '0.75rem',
               boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
               padding: '1.5rem',
-              transition: 'box-shadow 0.3s'
+              transition: 'box-shadow 0.3s',
+              position: 'relative'
             }}
           >
+            {completedModules.includes('clustering') && (
+              <div style={{
+                position: 'absolute',
+                top: '1rem',
+                right: '1rem',
+                backgroundColor: '#10b981',
+                color: 'white',
+                borderRadius: '50%',
+                width: '2rem',
+                height: '2rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1rem'
+              }}>
+                ✓
+              </div>
+            )}
+            <div 
+              className="w-16 h-16 bg-purple-500 rounded-lg flex items-center justify-center mb-4"
+              style={{
+                width: '4rem',
+                height: '4rem',
+                backgroundColor: '#8b5cf6',
+                borderRadius: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1rem'
+              }}
+            >
+              <span style={{ color: 'white', fontSize: '1.5rem' }}>🔍</span>
+            </div>
+            <h3 
+              className="text-xl font-semibold text-gray-900 mb-2"
+              style={{
+                fontSize: '1.25rem',
+                fontWeight: '600',
+                color: '#111827',
+                marginBottom: '0.5rem'
+              }}
+            >
+              Pattern Detective {completedModules.includes('clustering') && '🏆'}
+            </h3>
+            <p 
+              className="text-gray-600 mb-4"
+              style={{
+                color: '#4b5563',
+                marginBottom: '1rem'
+              }}
+            >
+              Find hidden groups in data
+              {completedModules.includes('clustering') && scores.clustering && (
+                <><br /><span style={{ color: '#10b981', fontWeight: '500' }}>
+                  Best Score: {scores.clustering}%
+                </span></>
+              )}
+            </p>
+            <button 
+              className="bg-purple-500 hover:bg-purple-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              onClick={() => setCurrentView('clustering')}
+              style={{
+                backgroundColor: completedModules.includes('clustering') ? '#10b981' : '#8b5cf6',
+                color: 'white',
+                fontWeight: '500',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+            >
+              {completedModules.includes('clustering') ? 'Play Again' : 'Play Game'}
+            </button>
+          </div>
+
+          <div 
+            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '0.75rem',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              padding: '1.5rem',
+              transition: 'box-shadow 0.3s',
+              position: 'relative'
+            }}
+          >
+            {completedModules.includes('regression') && (
+              <div style={{
+                position: 'absolute',
+                top: '1rem',
+                right: '1rem',
+                backgroundColor: '#10b981',
+                color: 'white',
+                borderRadius: '50%',
+                width: '2rem',
+                height: '2rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1rem'
+              }}>
+                ✓
+              </div>
+            )}
             <div 
               className="w-16 h-16 bg-green-500 rounded-lg flex items-center justify-center mb-4"
               style={{
                 width: '4rem',
                 height: '4rem',
                 backgroundColor: '#10b981',
+                borderRadius: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1rem'
+              }}
+            >
+              <span style={{ color: 'white', fontSize: '1.5rem' }}>📈</span>
+            </div>
+            <h3 
+              className="text-xl font-semibold text-gray-900 mb-2"
+              style={{
+                fontSize: '1.25rem',
+                fontWeight: '600',
+                color: '#111827',
+                marginBottom: '0.5rem'
+              }}
+            >
+              Prediction Explorer {completedModules.includes('regression') && '🏆'}
+            </h3>
+            <p 
+              className="text-gray-600 mb-4"
+              style={{
+                color: '#4b5563',
+                marginBottom: '1rem'
+              }}
+            >
+              Learn to predict trends and patterns
+              {completedModules.includes('regression') && scores.regression && (
+                <><br /><span style={{ color: '#10b981', fontWeight: '500' }}>
+                  Best Score: {scores.regression}%
+                </span></>
+              )}
+            </p>
+            <button 
+              className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              onClick={() => setCurrentView('regression')}
+              style={{
+                backgroundColor: completedModules.includes('regression') ? '#10b981' : '#10b981',
+                color: 'white',
+                fontWeight: '500',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+            >
+              {completedModules.includes('regression') ? 'Play Again' : 'Play Game'}
+            </button>
+          </div>
+
+          <div 
+            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '0.75rem',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              padding: '1.5rem',
+              transition: 'box-shadow 0.3s',
+              position: 'relative'
+            }}
+          >
+            {completedModules.includes('neural-network') && (
+              <div style={{
+                position: 'absolute',
+                top: '1rem',
+                right: '1rem',
+                backgroundColor: '#10b981',
+                color: 'white',
+                borderRadius: '50%',
+                width: '2rem',
+                height: '2rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1rem'
+              }}>
+                ✓
+              </div>
+            )}
+            <div 
+              className="w-16 h-16 bg-red-500 rounded-lg flex items-center justify-center mb-4"
+              style={{
+                width: '4rem',
+                height: '4rem',
+                backgroundColor: '#ef4444',
                 borderRadius: '0.5rem',
                 display: 'flex',
                 alignItems: 'center',
@@ -581,7 +829,7 @@ function App() {
                 marginBottom: '0.5rem'
               }}
             >
-              Predicting Numbers
+              Neural Network Lab {completedModules.includes('neural-network') && '🏆'}
             </h3>
             <p 
               className="text-gray-600 mb-4"
@@ -590,13 +838,18 @@ function App() {
                 marginBottom: '1rem'
               }}
             >
-              Make predictions about the future
+              Watch AI neurons think and learn
+              {completedModules.includes('neural-network') && scores['neural-network'] && (
+                <><br /><span style={{ color: '#10b981', fontWeight: '500' }}>
+                  Best Score: {scores['neural-network']}%
+                </span></>
+              )}
             </p>
             <button 
-              className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-              onClick={() => setCurrentView('prediction')}
+              className="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              onClick={() => setCurrentView('neural-network')}
               style={{
-                backgroundColor: '#10b981',
+                backgroundColor: completedModules.includes('neural-network') ? '#10b981' : '#ef4444',
                 color: 'white',
                 fontWeight: '500',
                 padding: '0.5rem 1rem',
@@ -606,12 +859,84 @@ function App() {
                 transition: 'background-color 0.2s'
               }}
             >
-              Try It
+              {completedModules.includes('neural-network') ? 'Play Again' : 'Explore'}
+            </button>
+          </div>
+
+          <div 
+            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '0.75rem',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              padding: '1.5rem',
+              transition: 'box-shadow 0.3s'
+            }}
+          >
+            <div 
+              className="w-16 h-16 bg-yellow-500 rounded-lg flex items-center justify-center mb-4"
+              style={{
+                width: '4rem',
+                height: '4rem',
+                backgroundColor: '#f59e0b',
+                borderRadius: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1rem'
+              }}
+            >
+              <span style={{ color: 'white', fontSize: '1.5rem' }}>🔮</span>
+            </div>
+            <h3 
+              className="text-xl font-semibold text-gray-900 mb-2"
+              style={{
+                fontSize: '1.25rem',
+                fontWeight: '600',
+                color: '#111827',
+                marginBottom: '0.5rem'
+              }}
+            >
+              Create Your Own AI
+            </h3>
+            <p 
+              className="text-gray-600 mb-4"
+              style={{
+                color: '#4b5563',
+                marginBottom: '1rem'
+              }}
+            >
+              Build your own mini AI models (Coming Soon!)
+            </p>
+            <button 
+              className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition-colors opacity-50 cursor-not-allowed"
+              disabled
+              style={{
+                backgroundColor: '#f59e0b',
+                color: 'white',
+                fontWeight: '500',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                border: 'none',
+                opacity: 0.5,
+                cursor: 'not-allowed'
+              }}
+            >
+              Coming Soon!
             </button>
           </div>
         </div>
       </div>
-    </div>
+      
+      {/* Accessibility Panel */}
+      <AccessibilityPanel
+        settings={accessibilitySettings}
+        onSettingsChange={setAccessibilitySettings}
+        isOpen={isAccessibilityPanelOpen}
+        onToggle={() => setIsAccessibilityPanelOpen(!isAccessibilityPanelOpen)}
+      />
+      </div>
+    </BadgeSystem>
   );
 }
 

@@ -16,6 +16,11 @@ interface ClassificationItem {
 
 interface ClassificationGameProps {
   onComplete: (score: number) => void;
+  accessibilitySettings?: {
+    soundEnabled: boolean;
+    reducedMotion: boolean;
+    highContrast: boolean;
+  };
 }
 
 const items: ClassificationItem[] = [
