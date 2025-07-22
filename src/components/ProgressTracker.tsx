@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { CheckCircle, Circle, Star, Award } from 'lucide-react';
+import { CheckCircle, Circle, Star } from 'lucide-react';
 
 interface ProgressTrackerProps {
   completedModules: string[];
@@ -21,36 +21,64 @@ export function ProgressTracker({ completedModules, scores, className = '' }: Pr
     : 0;
 
   return (
-    <div className={`bg-white rounded-xl shadow-lg p-6 ${className}`}>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-          <Star className="text-yellow-500" size={24} />
+    <div style={{
+      backgroundColor: 'white',
+      borderRadius: '0.75rem',
+      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+      padding: '1.5rem'
+    }} className={className}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+        <h3 style={{ 
+          fontSize: '1.25rem', 
+          fontWeight: '700', 
+          color: '#1f2937', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '0.5rem',
+          margin: 0
+        }}>
+          <Star style={{ color: '#eab308' }} size={24} />
           Your Learning Journey
         </h3>
-        <div className="text-right">
-          <div className="text-sm text-gray-600">Progress</div>
-          <div className="text-2xl font-bold text-blue-600">{Math.round(progress)}%</div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: '0.875rem', color: '#4b5563' }}>Progress</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#2563eb' }}>{Math.round(progress)}%</div>
         </div>
       </div>
 
       {/* Progress Bar */}
-      <div className="mb-6">
-        <div className="w-full bg-gray-200 rounded-full h-3">
+      <div style={{ marginBottom: '1.5rem' }}>
+        <div style={{ 
+          width: '100%', 
+          backgroundColor: '#e5e7eb', 
+          borderRadius: '9999px', 
+          height: '0.75rem' 
+        }}>
           <motion.div
-            className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full"
+            style={{
+              background: 'linear-gradient(to right, #3b82f6, #7c3aed)',
+              height: '0.75rem',
+              borderRadius: '9999px'
+            }}
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 1, ease: "easeOut" }}
           />
         </div>
-        <div className="flex justify-between mt-2 text-sm text-gray-600">
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          marginTop: '0.5rem', 
+          fontSize: '0.875rem', 
+          color: '#4b5563' 
+        }}>
           <span>Getting Started</span>
           <span>AI Expert!</span>
         </div>
       </div>
 
       {/* Module List */}
-      <div className="space-y-3 mb-6">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
         {modules.map((module, index) => {
           const isCompleted = completedModules.includes(module.id);
           const score = scores[module.id];
@@ -61,30 +89,40 @@ export function ProgressTracker({ completedModules, scores, className = '' }: Pr
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
-              className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
-                isCompleted ? 'bg-green-50 border border-green-200' : 'bg-gray-50'
-              }`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.75rem',
+                borderRadius: '0.5rem',
+                backgroundColor: isCompleted ? '#f0fdf4' : '#f9fafb',
+                border: isCompleted ? '1px solid #bbf7d0' : 'none',
+                transition: 'colors 0.2s'
+              }}
             >
-              <div className="flex-shrink-0">
+              <div style={{ flexShrink: 0 }}>
                 {isCompleted ? (
-                  <CheckCircle className="text-green-500" size={24} />
+                  <CheckCircle style={{ color: '#10b981' }} size={24} />
                 ) : (
-                  <Circle className="text-gray-400" size={24} />
+                  <Circle style={{ color: '#9ca3af' }} size={24} />
                 )}
               </div>
               
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">{module.icon}</span>
-                  <span className={`font-medium ${isCompleted ? 'text-green-800' : 'text-gray-700'}`}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontSize: '1.125rem' }}>{module.icon}</span>
+                  <span style={{ 
+                    fontWeight: '500', 
+                    color: isCompleted ? '#166534' : '#374151'
+                  }}>
                     {module.name}
                   </span>
                 </div>
                 {isCompleted && score && (
-                  <div className="text-sm text-green-600">
+                  <div style={{ fontSize: '0.875rem', color: '#059669' }}>
                     Best Score: {score}%
-                    {score >= 90 && <span className="ml-2">🌟</span>}
-                    {score === 100 && <span className="ml-1">✨</span>}
+                    {score >= 90 && <span style={{ marginLeft: '0.5rem' }}>🌟</span>}
+                    {score === 100 && <span style={{ marginLeft: '0.25rem' }}>✨</span>}
                   </div>
                 )}
               </div>
@@ -93,7 +131,7 @@ export function ProgressTracker({ completedModules, scores, className = '' }: Pr
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="text-green-500"
+                  style={{ color: '#10b981' }}
                 >
                   ✓
                 </motion.div>
@@ -105,36 +143,65 @@ export function ProgressTracker({ completedModules, scores, className = '' }: Pr
 
       {/* Stats */}
       {completedModules.length > 0 && (
-        <div className="border-t border-gray-200 pt-4">
-          <div className="grid grid-cols-2 gap-4 text-center">
-            <div className="bg-blue-50 rounded-lg p-3">
-              <div className="text-2xl font-bold text-blue-600">{completedModules.length}</div>
-              <div className="text-sm text-blue-800">Modules Completed</div>
+        <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '1rem' }}>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(2, 1fr)', 
+            gap: '1rem', 
+            textAlign: 'center' 
+          }}>
+            <div style={{ 
+              backgroundColor: '#eff6ff', 
+              borderRadius: '0.5rem', 
+              padding: '0.75rem' 
+            }}>
+              <div style={{ 
+                fontSize: '1.5rem', 
+                fontWeight: '700', 
+                color: '#2563eb' 
+              }}>
+                {completedModules.length}
+              </div>
+              <div style={{ fontSize: '0.875rem', color: '#1e40af' }}>
+                Modules Completed
+              </div>
             </div>
-            <div className="bg-purple-50 rounded-lg p-3">
-              <div className="text-2xl font-bold text-purple-600">{averageScore}%</div>
-              <div className="text-sm text-purple-800">Average Score</div>
+            <div style={{ 
+              backgroundColor: '#faf5ff', 
+              borderRadius: '0.5rem', 
+              padding: '0.75rem' 
+            }}>
+              <div style={{ 
+                fontSize: '1.5rem', 
+                fontWeight: '700', 
+                color: '#7c3aed' 
+              }}>
+                {averageScore}%
+              </div>
+              <div style={{ fontSize: '0.875rem', color: '#6b21a8' }}>
+                Average Score
+              </div>
             </div>
           </div>
         </div>
       )}
 
       {/* Encouragement Message */}
-      <div className="mt-4 text-center">
+      <div style={{ marginTop: '1rem', textAlign: 'center' }}>
         {completedModules.length === 0 && (
-          <p className="text-gray-600 text-sm">
+          <p style={{ color: '#4b5563', fontSize: '0.875rem', margin: 0 }}>
             🚀 Ready to start your AI adventure? Pick your first module above!
           </p>
         )}
         {completedModules.length > 0 && completedModules.length < modules.length && (
-          <p className="text-blue-600 text-sm">
+          <p style={{ color: '#2563eb', fontSize: '0.875rem', margin: 0 }}>
             🎉 Great progress! Keep going to become an AI expert!
           </p>
         )}
         {completedModules.length === modules.length && (
-          <div className="text-center">
-            <div className="text-2xl mb-2">🎓</div>
-            <p className="text-green-600 font-medium">
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🎓</div>
+            <p style={{ color: '#059669', fontWeight: '500', margin: 0 }}>
               Congratulations! You've mastered all AI modules!
             </p>
           </div>

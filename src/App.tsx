@@ -12,7 +12,7 @@ import { UserDashboard } from './components/UserDashboard';
 import { useAuth } from './context/AuthContext';
 
 function App() {
-  const { user, isAuthenticated, login, signup, logout, updateProgress } = useAuth();
+  const { user, isAuthenticated, login, signup, updateProgress } = useAuth();
   const [currentView, setCurrentView] = useState<'welcome' | 'modules' | 'classification' | 'regression' | 'clustering' | 'neural-network' | 'introduction'>('welcome');
   const [completedModules, setCompletedModules] = useState<string[]>([]);
   const [scores, setScores] = useState<Record<string, number>>({});
@@ -172,7 +172,7 @@ function App() {
           </button>
         </div>
         
-        <div style={{ maxWidth: '4rem', margin: '0 auto', textAlign: 'center' }}>
+        <div style={{ maxWidth: '72rem', margin: '0 auto', textAlign: 'center' }}>
           <h1 style={{ fontSize: '3rem', fontWeight: '700', color: '#111827', marginBottom: '2rem' }}>
             Welcome to AI! 🤖
           </h1>
