@@ -56,28 +56,6 @@ function App() {
     );
   }
 
-  if (currentView === 'regression') {
-    return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
-        <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
-          <button 
-            onClick={() => setCurrentView('modules')}
-            style={{
-              color: '#4b5563',
-              backgroundColor: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              padding: '0.5rem'
-            }}
-          >
-            ← Back to Modules
-          </button>
-        </div>
-        <RegressionGame onComplete={(score) => handleModuleComplete('regression', score)} />
-      </div>
-    );
-  }
 
   if (currentView === 'clustering') {
     return (
