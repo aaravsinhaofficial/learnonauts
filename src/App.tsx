@@ -3,6 +3,7 @@ import { ClassificationGame } from './components/modules/ClassificationGame';
 import { RegressionGame } from './components/modules/RegressionGame';
 import { ClusteringGame } from './components/modules/ClusteringGame';
 import { NeuralNetworkSimulation } from './components/modules/NeuralNetworkSimulation';
+import { AIBuilder } from './components/modules/AIBuilder';
 import { AccessibilityPanel, defaultAccessibilitySettings } from './components/AccessibilityPanel';
 import type { AccessibilitySettings } from './components/AccessibilityPanel';
 import { BadgeSystem } from './components/BadgeSystem';
@@ -13,7 +14,7 @@ import { useAuth } from './context/AuthContext';
 
 function App() {
   const { user, isAuthenticated, login, signup, updateProgress } = useAuth();
-  const [currentView, setCurrentView] = useState<'welcome' | 'modules' | 'classification' | 'regression' | 'clustering' | 'neural-network' | 'introduction'>('welcome');
+  const [currentView, setCurrentView] = useState<'welcome' | 'modules' | 'classification' | 'regression' | 'clustering' | 'neural-network' | 'introduction' | 'ai-builder'>('welcome');
   const [completedModules, setCompletedModules] = useState<string[]>([]);
   const [scores, setScores] = useState<Record<string, number>>({});
   const [accessibilitySettings, setAccessibilitySettings] = useState<AccessibilitySettings>(defaultAccessibilitySettings);
@@ -136,6 +137,43 @@ function App() {
           </button>
         </div>
         <NeuralNetworkSimulation onComplete={(score) => handleModuleComplete('neural-network', score)} />
+
+        {/* Authentication Modal */}
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          onLogin={login}
+          onSignup={signup}
+        />
+
+        {/* User Dashboard */}
+        <UserDashboard
+          isOpen={isUserDashboardOpen}
+          onClose={() => setIsUserDashboardOpen(false)}
+        />
+      </div>
+    );
+  }
+
+  if (currentView === 'ai-builder') {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+        <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
+          <button 
+            onClick={() => setCurrentView('modules')}
+            style={{
+              color: '#4b5563',
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              padding: '0.5rem'
+            }}
+          >
+            ← Back to Modules
+          </button>
+        </div>
+        <AIBuilder onComplete={(score) => handleModuleComplete('ai-builder', score)} />
 
         {/* Authentication Modal */}
         <AuthModal
@@ -1081,11 +1119,11 @@ function App() {
                 marginBottom: '1rem'
               }}
             >
-              Build your own mini AI models (Coming Soon!)
+              Build your own mini AI models and watch them come to life!
             </p>
             <button 
-              className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition-colors opacity-50 cursor-not-allowed"
-              disabled
+              className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              onClick={() => setCurrentView('ai-builder')}
               style={{
                 backgroundColor: '#f59e0b',
                 color: 'white',
@@ -1093,11 +1131,17 @@ function App() {
                 padding: '0.5rem 1rem',
                 borderRadius: '0.5rem',
                 border: 'none',
-                opacity: 0.5,
-                cursor: 'not-allowed'
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#d97706';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#f59e0b';
               }}
             >
-              Coming Soon!
+              Start Building!
             </button>
           </div>
         </div>
