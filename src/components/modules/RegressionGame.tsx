@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, RefreshCw, CheckCircle, Target, Zap, Brain, BarChart3 } from 'lucide-react';
+import type { AccessibilitySettings } from '../AccessibilityPanel';
 
 interface DataPoint {
   x: number;
@@ -21,9 +22,10 @@ interface Scenario {
 
 interface RegressionGameProps {
   onComplete: (score: number) => void;
+  accessibilitySettings?: AccessibilitySettings;
 }
 
-export function RegressionGame({ onComplete }: RegressionGameProps) {
+export function RegressionGame({ onComplete, accessibilitySettings }: RegressionGameProps) {
   const [slope, setSlope] = useState(1);
   const [intercept, setIntercept] = useState(50);
   const [score, setScore] = useState(0);

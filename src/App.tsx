@@ -10,7 +10,11 @@ import { BadgeSystem } from './components/BadgeSystem';
 import { ProgressTracker } from './components/ProgressTracker';
 import { AuthModal } from './components/AuthModal';
 import { UserDashboard } from './components/UserDashboard';
+import { NeurodivergentWrapper } from './components/NeurodivergentWrapper';
+import { BreakReminder } from './components/BreakReminder';
+import { FocusTimer } from './components/FocusTimer';
 import { useAuth } from './context/AuthContext';
+import { speechManager } from './utils/speechSynthesis';
 
 function App() {
   const { user, isAuthenticated, login, signup, updateProgress } = useAuth();
@@ -21,6 +25,15 @@ function App() {
   const [isAccessibilityPanelOpen, setIsAccessibilityPanelOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isUserDashboardOpen, setIsUserDashboardOpen] = useState(false);
+
+  // Update speech manager when accessibility settings change
+  const handleAccessibilitySettingsChange = (newSettings: AccessibilitySettings) => {
+    setAccessibilitySettings(newSettings);
+    
+    // Update speech manager
+    speechManager.setEnabled(newSettings.soundEnabled);
+    speechManager.setDefaultRate(newSettings.narrationSpeed);
+  };
 
   const handleModuleComplete = async (moduleId: string, score: number) => {
     console.log(`Module ${moduleId} completed with score: ${score}%`);
@@ -61,7 +74,10 @@ function App() {
             ← Back to Modules
           </button>
         </div>
-        <ClassificationGame onComplete={(score) => handleModuleComplete('classification', score)} />
+        <ClassificationGame 
+          onComplete={(score) => handleModuleComplete('classification', score)} 
+          accessibilitySettings={accessibilitySettings}
+        />
 
         {/* Authentication Modal */}
         <AuthModal
@@ -319,7 +335,10 @@ function App() {
             ← Back to Modules
           </button>
         </div>
-        <RegressionGame onComplete={(score) => handleModuleComplete('regression', score)} />
+        <RegressionGame 
+          onComplete={(score) => handleModuleComplete('regression', score)} 
+          accessibilitySettings={accessibilitySettings}
+        />
 
         {/* Authentication Modal */}
         <AuthModal
@@ -498,14 +517,15 @@ function App() {
       completedModules={isAuthenticated ? Object.keys(user?.progress.moduleProgress || {}).filter(moduleId => user?.progress.moduleProgress[moduleId]?.completed) : completedModules} 
       scores={isAuthenticated ? Object.fromEntries(Object.entries(user?.progress.moduleProgress || {}).map(([moduleId, progress]) => [moduleId, progress.bestScore])) : scores}
     >
-      <div 
-        className="min-h-screen bg-gray-50 p-6"
-        style={{
-          minHeight: '100vh',
-          backgroundColor: '#f8fafc',
-          padding: '1.5rem'
-        }}
-      >
+      <NeurodivergentWrapper settings={accessibilitySettings}>
+        <div 
+          className="min-h-screen bg-gray-50 p-6"
+          style={{
+            minHeight: '100vh',
+            backgroundColor: '#f8fafc',
+            padding: '1.5rem'
+          }}
+        >
       <div 
         className="max-w-6xl mx-auto"
         style={{
@@ -586,7 +606,7 @@ function App() {
                     My Profile
                   </button>
                   <button 
-                    onClick={() => setAccessibilitySettings(prev => ({ ...prev, soundEnabled: !prev.soundEnabled }))}
+                    onClick={() => handleAccessibilitySettingsChange({...accessibilitySettings, soundEnabled: !accessibilitySettings.soundEnabled})}
                     style={{
                       color: '#4b5563',
                       backgroundColor: 'transparent',
@@ -618,7 +638,7 @@ function App() {
                     Login / Sign Up
                   </button>
                   <button 
-                    onClick={() => setAccessibilitySettings(prev => ({ ...prev, soundEnabled: !prev.soundEnabled }))}
+                    onClick={() => handleAccessibilitySettingsChange({...accessibilitySettings, soundEnabled: !accessibilitySettings.soundEnabled})}
                     style={{
                       color: '#4b5563',
                       backgroundColor: 'transparent',
@@ -1147,10 +1167,28 @@ function App() {
         </div>
       </div>
       
+      {/* Break Reminder for ADHD Support */}
+      <BreakReminder
+        enabled={accessibilitySettings.breakReminders}
+        interval={20}
+        sensoryBreaks={accessibilitySettings.sensoryBreaks}
+      />
+      
+      {/* Focus Timer for ADHD Support */}
+      <FocusTimer
+        visible={accessibilitySettings.timerDisplay}
+        onComplete={() => {
+          // Optional: trigger a gentle celebration using speech manager
+          if (accessibilitySettings.soundEnabled) {
+            speechManager.speakFocusComplete('focus');
+          }
+        }}
+      />
+      
       {/* Accessibility Panel */}
       <AccessibilityPanel
         settings={accessibilitySettings}
-        onSettingsChange={setAccessibilitySettings}
+        onSettingsChange={handleAccessibilitySettingsChange}
         isOpen={isAccessibilityPanelOpen}
         onToggle={() => setIsAccessibilityPanelOpen(!isAccessibilityPanelOpen)}
       />
@@ -1169,6 +1207,7 @@ function App() {
         onClose={() => setIsUserDashboardOpen(false)}
       />
       </div>
+      </NeurodivergentWrapper>
     </BadgeSystem>
   );
 }

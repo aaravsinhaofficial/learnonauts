@@ -5,6 +5,8 @@ import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Apple, Car, Cat, TreePine, Flower, Fish, CheckCircle, RotateCcw } from 'lucide-react';
+import { AccessibilityAwareError, useAccessibilityAwareError } from '../AccessibilityAwareError';
+import type { AccessibilitySettings } from '../AccessibilityPanel';
 
 interface ClassificationItem {
   id: string;
@@ -16,11 +18,7 @@ interface ClassificationItem {
 
 interface ClassificationGameProps {
   onComplete: (score: number) => void;
-  accessibilitySettings?: {
-    soundEnabled: boolean;
-    reducedMotion: boolean;
-    highContrast: boolean;
-  };
+  accessibilitySettings?: AccessibilitySettings;
 }
 
 const items: ClassificationItem[] = [
@@ -148,13 +146,14 @@ function DropZone({
   );
 }
 
-export function ClassificationGame({ onComplete }: ClassificationGameProps) {
+export function ClassificationGame({ onComplete, accessibilitySettings }: ClassificationGameProps) {
   const [livingItems, setLivingItems] = useState<ClassificationItem[]>([]);
   const [nonLivingItems, setNonLivingItems] = useState<ClassificationItem[]>([]);
   const [availableItems, setAvailableItems] = useState<ClassificationItem[]>(items);
   const [feedback, setFeedback] = useState<string>('');
   const [isChecked, setIsChecked] = useState(false);
   const [score, setScore] = useState(0);
+  const { error, showError, clearError } = useAccessibilityAwareError();
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -373,6 +372,45 @@ export function ClassificationGame({ onComplete }: ClassificationGameProps) {
               <p style={{ fontSize: '0.875rem', color: '#4b5563' }}>Score: {score}%</p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Accessibility-Aware Error Display */}
+      {error && (
+        <AccessibilityAwareError
+          message={error.message}
+          errorHandling={accessibilitySettings?.errorHandling || 'standard'}
+          soundEnabled={accessibilitySettings?.soundEnabled || false}
+          onDismiss={clearError}
+        />
+      )}
+
+      {/* Demo Error Button (for testing accessibility features) */}
+      {isChecked && score < 100 && (
+        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+          <button
+            onClick={() => showError('This is a demo error to show how neurodivergent-friendly error handling works! Try changing the error style in the accessibility panel.')}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#ef4444',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.5rem',
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#dc2626';
+              e.currentTarget.style.transform = 'scale(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#ef4444';
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+          >
+            🧠 Demo Neurodivergent-Friendly Error
+          </button>
         </div>
       )}
     </div>
