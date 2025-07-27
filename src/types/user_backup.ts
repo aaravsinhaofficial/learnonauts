@@ -1,17 +1,4 @@
-export interface User {
-  id: string;
-  email: string;
-  username: string;
-  displayName: string;
-  avatar?: string;
-  createdAt: Date;
-  lastLogin: Date;
-  preferences: UserPreferences;
-  progress: UserProgress;
-  achievements: Achievement[];
-}
-
-export interface UserPreferences {
+export interfexport interface UserPreferences {
   accessibility: {
     // Visual Settings
     fontSize: 'small' | 'medium' | 'large' | 'extra-large';
@@ -48,6 +35,34 @@ export interface UserPreferences {
     // Controls
     errorHandling: 'standard' | 'gentle' | 'encouraging';
     feedbackStyle: 'standard' | 'visual' | 'audio' | 'both';
+  };
+  notifications: {
+    achievements: boolean;
+    dailyReminders: boolean;
+    weeklyProgress: boolean;
+  };
+};string;
+  email: string;
+  username: string;
+  displayName: string;
+  avatar?: string;
+  createdAt: Date;
+  lastLogin: Date;
+  preferences: UserPreferences;
+  progress: UserProgress;
+  achievements: Achievement[];
+}
+
+export interface UserPreferences {
+  accessibility: {
+    soundEnabled: boolean;
+    reducedMotion: boolean;
+    highContrast: boolean;
+    fontSize: 'small' | 'medium' | 'large';
+    colorTheme: 'default' | 'high-contrast' | 'warm' | 'cool';
+    narrationSpeed: number;
+    focusIndicator: boolean;
+    darkMode: boolean;
   };
   notifications: {
     achievements: boolean;

@@ -1,10 +1,10 @@
-import type { User, Session, LoginCredentials, SignupData, UserProgress, ModuleProgress } from '../types/user';
+import type { User, Session, LoginCredentials, SignupData } from '../types/user';
 
 // Simple in-memory storage for demo purposes
 // In production, this would be replaced with a real backend API
 class UserAuthService {
   private users: Map<string, User> = new Map();
-  private sessions: Map<string, Session> = new Map();
+  // Note: sessions could be used for persistent login sessions in the future
   private currentSession: Session | null = null;
 
   constructor() {
@@ -27,14 +27,41 @@ class UserAuthService {
         lastLogin: new Date(),
         preferences: {
           accessibility: {
-            soundEnabled: true,
-            reducedMotion: false,
-            highContrast: false,
+            // Visual Settings
             fontSize: 'medium',
             colorTheme: 'default',
-            narrationSpeed: 1.0,
-            focusIndicator: true,
             darkMode: false,
+            reducedMotion: false,
+            enhancedFocusOutlines: false,
+            
+            // Audio Settings
+            speechEnabled: false,
+            speechInstructions: false,
+            speechFeedback: false,
+            speechSpeed: 1.0,
+            speechVolume: 0.8,
+            soundEnabled: true,
+            
+            // Reading Assistance
+            readingGuide: false,
+            letterSpacing: 'normal',
+            lineHeight: 'normal',
+            wordSpacing: 'normal',
+            colorOverlay: 'none',
+            
+            // Focus & Attention
+            breakReminders: false,
+            sensoryBreaks: false,
+            visibleTimers: false,
+            focusSessions: false,
+            distractionReduction: false,
+            simplifiedUI: false,
+            minimalMode: false,
+            cognitiveLoad: 'full',
+            
+            // Controls
+            errorHandling: 'standard',
+            feedbackStyle: 'standard',
           },
           notifications: {
             achievements: true,
@@ -213,14 +240,41 @@ class UserAuthService {
         lastLogin: new Date(),
         preferences: {
           accessibility: {
-            soundEnabled: true,
-            reducedMotion: false,
-            highContrast: false,
+            // Visual Settings
             fontSize: 'medium',
             colorTheme: 'default',
-            narrationSpeed: 1.0,
-            focusIndicator: true,
             darkMode: false,
+            reducedMotion: false,
+            enhancedFocusOutlines: false,
+            
+            // Audio Settings
+            speechEnabled: false,
+            speechInstructions: false,
+            speechFeedback: false,
+            speechSpeed: 1.0,
+            speechVolume: 0.8,
+            soundEnabled: true,
+            
+            // Reading Assistance
+            readingGuide: false,
+            letterSpacing: 'normal',
+            lineHeight: 'normal',
+            wordSpacing: 'normal',
+            colorOverlay: 'none',
+            
+            // Focus & Attention
+            breakReminders: false,
+            sensoryBreaks: false,
+            visibleTimers: false,
+            focusSessions: false,
+            distractionReduction: false,
+            simplifiedUI: false,
+            minimalMode: false,
+            cognitiveLoad: 'full',
+            
+            // Controls
+            errorHandling: 'standard',
+            feedbackStyle: 'standard',
           },
           notifications: {
             achievements: true,

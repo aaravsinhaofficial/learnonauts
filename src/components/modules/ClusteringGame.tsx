@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Users, RefreshCw, CheckCircle, Lightbulb, Palette, Brain, Sparkles } from 'lucide-react';
+import type { AccessibilitySettings } from '../AccessibilityPanel';
 
 interface DataPoint {
   id: string;
@@ -22,9 +23,10 @@ interface Scenario {
 
 interface ClusteringGameProps {
   onComplete: (score: number) => void;
+  accessibilitySettings?: AccessibilitySettings;
 }
 
-export function ClusteringGame({ onComplete }: ClusteringGameProps) {
+export function ClusteringGame({ onComplete, accessibilitySettings }: ClusteringGameProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [selectedTool, setSelectedTool] = useState<number>(1);
   const [isCompleted, setIsCompleted] = useState(false);

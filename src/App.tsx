@@ -4,7 +4,7 @@ import { RegressionGame } from './components/modules/RegressionGame';
 import { ClusteringGame } from './components/modules/ClusteringGame';
 import { NeuralNetworkSimulation } from './components/modules/NeuralNetworkSimulation';
 import { AIBuilder } from './components/modules/AIBuilder';
-import { AccessibilityPanel, defaultAccessibilitySettings } from './components/AccessibilityPanel';
+import AccessibilityPanel, { defaultAccessibilitySettings } from './components/AccessibilityPanel';
 import type { AccessibilitySettings } from './components/AccessibilityPanel';
 import { BadgeSystem } from './components/BadgeSystem';
 import { ProgressTracker } from './components/ProgressTracker';
@@ -13,12 +13,13 @@ import { UserDashboard } from './components/UserDashboard';
 import { NeurodivergentWrapper } from './components/NeurodivergentWrapper';
 import { BreakReminder } from './components/BreakReminder';
 import { FocusTimer } from './components/FocusTimer';
+import { AccessibilityDemo } from './components/AccessibilityDemo';
 import { useAuth } from './context/AuthContext';
 import { speechManager } from './utils/speechSynthesis';
 
 function App() {
   const { user, isAuthenticated, login, signup, updateProgress } = useAuth();
-  const [currentView, setCurrentView] = useState<'welcome' | 'modules' | 'classification' | 'regression' | 'clustering' | 'neural-network' | 'introduction' | 'ai-builder'>('welcome');
+  const [currentView, setCurrentView] = useState<'welcome' | 'modules' | 'classification' | 'regression' | 'clustering' | 'neural-network' | 'introduction' | 'ai-builder' | 'accessibility-demo'>('welcome');
   const [completedModules, setCompletedModules] = useState<string[]>([]);
   const [scores, setScores] = useState<Record<string, number>>({});
   const [accessibilitySettings, setAccessibilitySettings] = useState<AccessibilitySettings>(defaultAccessibilitySettings);
@@ -32,7 +33,7 @@ function App() {
     
     // Update speech manager
     speechManager.setEnabled(newSettings.soundEnabled);
-    speechManager.setDefaultRate(newSettings.narrationSpeed);
+    speechManager.setDefaultRate(newSettings.speechSpeed);
   };
 
   const handleModuleComplete = async (moduleId: string, score: number) => {
@@ -115,7 +116,10 @@ function App() {
             ← Back to Modules
           </button>
         </div>
-        <ClusteringGame onComplete={(score) => handleModuleComplete('clustering', score)} />
+        <ClusteringGame 
+          onComplete={(score) => handleModuleComplete('clustering', score)} 
+          accessibilitySettings={accessibilitySettings}
+        />
 
         {/* Authentication Modal */}
         <AuthModal
@@ -152,7 +156,10 @@ function App() {
             ← Back to Modules
           </button>
         </div>
-        <NeuralNetworkSimulation onComplete={(score) => handleModuleComplete('neural-network', score)} />
+        <NeuralNetworkSimulation 
+          onComplete={(score) => handleModuleComplete('neural-network', score)} 
+          accessibilitySettings={accessibilitySettings}
+        />
 
         {/* Authentication Modal */}
         <AuthModal
@@ -189,7 +196,49 @@ function App() {
             ← Back to Modules
           </button>
         </div>
-        <AIBuilder onComplete={(score) => handleModuleComplete('ai-builder', score)} />
+        <AIBuilder 
+          onComplete={(score) => handleModuleComplete('ai-builder', score)} 
+          accessibilitySettings={accessibilitySettings}
+        />
+
+        {/* Authentication Modal */}
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          onLogin={login}
+          onSignup={signup}
+        />
+
+        {/* User Dashboard */}
+        <UserDashboard
+          isOpen={isUserDashboardOpen}
+          onClose={() => setIsUserDashboardOpen(false)}
+        />
+      </div>
+    );
+  }
+
+  if (currentView === 'accessibility-demo') {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+        <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
+          <button 
+            onClick={() => setCurrentView('modules')}
+            style={{
+              color: '#4b5563',
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              padding: '0.5rem'
+            }}
+          >
+            ← Back to Modules
+          </button>
+        </div>
+        <AccessibilityDemo 
+          settings={accessibilitySettings}
+        />
 
         {/* Authentication Modal */}
         <AuthModal
@@ -606,7 +655,10 @@ function App() {
                     My Profile
                   </button>
                   <button 
-                    onClick={() => handleAccessibilitySettingsChange({...accessibilitySettings, soundEnabled: !accessibilitySettings.soundEnabled})}
+                    onClick={() => {
+                      console.log('🔧 Accessibility button clicked (authenticated)!');
+                      setIsAccessibilityPanelOpen(true);
+                    }}
                     style={{
                       color: '#4b5563',
                       backgroundColor: 'transparent',
@@ -616,6 +668,7 @@ function App() {
                       cursor: 'pointer',
                       fontSize: '1rem'
                     }}
+                    title="Open Accessibility Settings"
                   >
                     🔧
                   </button>
@@ -638,7 +691,10 @@ function App() {
                     Login / Sign Up
                   </button>
                   <button 
-                    onClick={() => handleAccessibilitySettingsChange({...accessibilitySettings, soundEnabled: !accessibilitySettings.soundEnabled})}
+                    onClick={() => {
+                      console.log('🔧 Accessibility button clicked (not authenticated)!');
+                      setIsAccessibilityPanelOpen(true);
+                    }}
                     style={{
                       color: '#4b5563',
                       backgroundColor: 'transparent',
@@ -648,6 +704,7 @@ function App() {
                       cursor: 'pointer',
                       fontSize: '1rem'
                     }}
+                    title="Open Accessibility Settings"
                   >
                     🔧
                   </button>
@@ -1164,6 +1221,76 @@ function App() {
               Start Building!
             </button>
           </div>
+
+          {/* Accessibility Demo Module */}
+          <div 
+            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '0.75rem',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              padding: '1.5rem',
+              transition: 'box-shadow 0.3s'
+            }}
+          >
+            <div 
+              className="w-16 h-16 bg-indigo-500 rounded-lg flex items-center justify-center mb-4"
+              style={{
+                width: '4rem',
+                height: '4rem',
+                backgroundColor: '#6366f1',
+                borderRadius: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1rem'
+              }}
+            >
+              <span style={{ color: 'white', fontSize: '1.5rem' }}>🧠</span>
+            </div>
+            <h3 
+              className="text-xl font-semibold text-gray-900 mb-2"
+              style={{
+                fontSize: '1.25rem',
+                fontWeight: '600',
+                color: '#111827',
+                marginBottom: '0.5rem'
+              }}
+            >
+              Accessibility Features Demo 🌟
+            </h3>
+            <p 
+              className="text-gray-600 mb-4"
+              style={{
+                color: '#4b5563',
+                marginBottom: '1rem'
+              }}
+            >
+              Test all neurodivergent-friendly features and customize your learning experience!
+            </p>
+            <button 
+              className="bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              onClick={() => setCurrentView('accessibility-demo')}
+              style={{
+                backgroundColor: '#6366f1',
+                color: 'white',
+                fontWeight: '500',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#4f46e5';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#6366f1';
+              }}
+            >
+              Try Features!
+            </button>
+          </div>
         </div>
       </div>
       
@@ -1176,7 +1303,7 @@ function App() {
       
       {/* Focus Timer for ADHD Support */}
       <FocusTimer
-        visible={accessibilitySettings.timerDisplay}
+        visible={accessibilitySettings.visibleTimers}
         onComplete={() => {
           // Optional: trigger a gentle celebration using speech manager
           if (accessibilitySettings.soundEnabled) {
@@ -1190,7 +1317,7 @@ function App() {
         settings={accessibilitySettings}
         onSettingsChange={handleAccessibilitySettingsChange}
         isOpen={isAccessibilityPanelOpen}
-        onToggle={() => setIsAccessibilityPanelOpen(!isAccessibilityPanelOpen)}
+        onClose={() => setIsAccessibilityPanelOpen(false)}
       />
 
       {/* Authentication Modal */}

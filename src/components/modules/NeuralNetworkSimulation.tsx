@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Pause, RotateCcw, Zap, Brain, TrendingUp } from 'lucide-react';
+import type { AccessibilitySettings } from '../AccessibilityPanel';
 
 interface Neuron {
   id: string;
@@ -32,9 +33,10 @@ interface Scenario {
 
 interface NeuralNetworkSimulationProps {
   onComplete: (score: number) => void;
+  accessibilitySettings?: AccessibilitySettings;
 }
 
-export function NeuralNetworkSimulation({ onComplete }: NeuralNetworkSimulationProps) {
+export function NeuralNetworkSimulation({ onComplete, accessibilitySettings }: NeuralNetworkSimulationProps) {
   const [isRunning, setIsRunning] = useState(false);
   const [isTraining, setIsTraining] = useState(false);
   const [currentScenario, setCurrentScenario] = useState(0);

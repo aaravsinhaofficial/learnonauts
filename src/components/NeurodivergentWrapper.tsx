@@ -19,7 +19,6 @@ export function NeurodivergentWrapper({ children, settings, className = '' }: Ne
       const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            // Add reading guide effect
             entry.target.classList.add('reading-focus');
           } else {
             entry.target.classList.remove('reading-focus');
@@ -27,7 +26,7 @@ export function NeurodivergentWrapper({ children, settings, className = '' }: Ne
         });
       }, { threshold: 0.5 });
 
-      wrapper.querySelectorAll('p, li, h1, h2, h3, h4, h5, h6').forEach((el) => {
+      wrapper.querySelectorAll('p, li, h1, h2, h3, h4, h5, h6').forEach((el: Element) => {
         observer.observe(el);
       });
 
@@ -38,7 +37,7 @@ export function NeurodivergentWrapper({ children, settings, className = '' }: Ne
   useEffect(() => {
     // Add dynamic styles to document head
     const styleId = 'neurodivergent-styles';
-    let existingStyle = document.getElementById(styleId);
+    let existingStyle = document.getElementById(styleId) as HTMLStyleElement;
     
     if (!existingStyle) {
       existingStyle = document.createElement('style');
@@ -46,154 +45,238 @@ export function NeurodivergentWrapper({ children, settings, className = '' }: Ne
       document.head.appendChild(existingStyle);
     }
 
+    // Font size mappings
+    const fontSizeMap = {
+      'small': '14px',
+      'medium': '16px',
+      'large': '18px',
+      'extra-large': '22px'
+    };
+
     existingStyle.textContent = `
+      /* Base font size */
+      .neurodivergent-wrapper {
+        font-size: ${fontSizeMap[settings.fontSize as keyof typeof fontSizeMap]} !important;
+        line-height: 1.6 !important;
+      }
+      
+      /* High contrast theme */
       .high-contrast {
-        filter: contrast(150%);
+        filter: contrast(150%) !important;
+        background: #ffffff !important;
+        color: #000000 !important;
       }
       
-      .high-contrast button, .high-contrast input {
-        border: 3px solid currentColor !important;
+      .high-contrast button, .high-contrast input, .high-contrast select {
+        border: 3px solid #000000 !important;
+        background: #ffffff !important;
+        color: #000000 !important;
       }
       
+      .high-contrast button:hover {
+        background: #000000 !important;
+        color: #ffffff !important;
+      }
+      
+      /* Reduced motion */
       .reduced-motion * {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+        transform: none !important;
       }
       
+      /* Enhanced focus outlines */
       .enhanced-focus *:focus {
         outline: 4px solid #3b82f6 !important;
-        outline-offset: 2px !important;
-        border-radius: 4px !important;
+        outline-offset: 3px !important;
+        border-radius: 6px !important;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
       }
       
-      .simplified-ui {
-        background: ${settings.darkMode ? '#1f2937' : '#ffffff'} !important;
+      /* Dark mode */
+      .dark-mode {
+        background: #1a202c !important;
+        color: #f7fafc !important;
       }
       
-      .simplified-ui * {
-        box-shadow: none !important;
-        border-radius: 4px !important;
-        background-image: none !important;
+      /* Dyslexia friendly */
+      .dyslexia-friendly {
+        font-family: 'OpenDyslexic', 'Comic Sans MS', Helvetica, Arial, sans-serif !important;
+        font-weight: bold !important;
+        letter-spacing: 0.12em !important;
+        word-spacing: 0.16em !important;
       }
       
-      .minimal-ui .secondary-info,
-      .minimal-ui .decorative-element,
-      .minimal-ui .extra-controls {
-        display: none !important;
-      }
-      
-      .reduced-ui .advanced-features {
-        opacity: 0.6;
-      }
-      
+      /* Reading guide */
       .reading-focus {
-        background: rgba(59, 130, 246, 0.1) !important;
-        border-left: 4px solid #3b82f6 !important;
-        padding-left: 12px !important;
-        margin-left: -16px !important;
-        transition: all 0.2s ease !important;
+        background: rgba(255, 255, 0, 0.2) !important;
+        padding: 0.25rem !important;
+        margin: 0.25rem 0 !important;
+        border-left: 4px solid #fbbf24 !important;
       }
       
-      ${settings.colorTheme === 'dyslexia-friendly' ? `
-        * {
-          font-family: 'OpenDyslexic', 'Comic Sans MS', 'Arial', sans-serif !important;
-          font-weight: 500 !important;
-        }
-      ` : ''}
+      /* Color themes */
+      .color-theme-autism-friendly {
+        background: #f0f4f8 !important;
+        color: #2d3748 !important;
+      }
       
-      ${settings.colorTheme === 'autism-friendly' ? `
-        * {
-          color: #2d3748 !important;
-          background-color: #f7fafc !important;
-        }
-        
-        button, input {
-          background-color: #e2e8f0 !important;
-          border-color: #a0aec0 !important;
-        }
-        
-        button:hover {
-          background-color: #cbd5e0 !important;
-        }
-      ` : ''}
+      .color-theme-dyslexia-friendly {
+        background: #fffef7 !important;
+        color: #1a202c !important;
+      }
+      
+      /* Text spacing */
+      .text-spacing-wide {
+        letter-spacing: 0.1em !important;
+      }
+      
+      .text-spacing-extra-wide {
+        letter-spacing: 0.15em !important;
+      }
+      
+      /* Word spacing */
+      .word-spacing-wide {
+        word-spacing: 0.1em !important;
+      }
+      
+      .word-spacing-extra-wide {
+        word-spacing: 0.15em !important;
+      }
+      
+      /* Line height */
+      .line-height-relaxed {
+        line-height: 1.75 !important;
+      }
+      
+      .line-height-loose {
+        line-height: 2.0 !important;
+      }
+      
+      /* Color overlays */
+      .color-overlay-blue {
+        background-color: rgba(173, 216, 230, 0.3) !important;
+      }
+      
+      .color-overlay-yellow {
+        background-color: rgba(255, 255, 224, 0.5) !important;
+      }
+      
+      .color-overlay-green {
+        background-color: rgba(144, 238, 144, 0.3) !important;
+      }
+      
+      .color-overlay-pink {
+        background-color: rgba(255, 192, 203, 0.3) !important;
+      }
+      
+      /* Cognitive load styles */
+      .cognitive-load-minimal {
+        background: #ffffff !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+      
+      .cognitive-load-reduced {
+        background: #f9fafb !important;
+        border: 1px solid #e5e7eb !important;
+      }
+      
+      /* Simplified UI */
+      .simplified-ui button,
+      .simplified-ui input,
+      .simplified-ui select {
+        border-radius: 8px !important;
+        padding: 12px 16px !important;
+        font-size: 16px !important;
+        border: 2px solid #d1d5db !important;
+      }
+      
+      /* Distraction reduction */
+      .distraction-reduction {
+        background: ${settings.darkMode ? '#1f2937' : '#ffffff'} !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+      
+      /* Timer display */
+      .timer-display {
+        position: fixed !important;
+        top: 20px !important;
+        right: 20px !important;
+        background: rgba(0, 0, 0, 0.8) !important;
+        color: white !important;
+        padding: 8px 12px !important;
+        border-radius: 6px !important;
+        z-index: 9999 !important;
+      }
+      
+      /* Error handling styles */
+      .error-handling-gentle .error {
+        background: #fef2f2 !important;
+        color: #991b1b !important;
+        border: 1px solid #fca5a5 !important;
+        border-radius: 6px !important;
+        padding: 8px 12px !important;
+      }
+      
+      .error-handling-encouraging .error {
+        background: #eff6ff !important;
+        color: #1e40af !important;
+        border: 1px solid #93c5fd !important;
+        border-radius: 6px !important;
+        padding: 8px 12px !important;
+      }
     `;
-
-    return () => {
-      const style = document.getElementById(styleId);
-      if (style) {
-        style.remove();
-      }
-    };
   }, [settings]);
-
-  useEffect(() => {
-    const wrapper = wrapperRef.current;
-    if (!wrapper) return;
-
-    // Apply reading guide
-    if (settings.readingGuide) {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            // Add reading guide effect
-            entry.target.classList.add('reading-focus');
-          } else {
-            entry.target.classList.remove('reading-focus');
-          }
-        });
-      }, { threshold: 0.5 });
-
-      wrapper.querySelectorAll('p, li, h1, h2, h3, h4, h5, h6').forEach((el) => {
-        observer.observe(el);
-      });
-
-      return () => observer.disconnect();
-    }
-  }, [settings.readingGuide]);
 
   const getWrapperStyles = (): React.CSSProperties => {
     const styles: React.CSSProperties = {};
-
-    // Color overlay
+    
     if (settings.colorOverlay !== 'none') {
       const overlays = {
-        blue: 'rgba(59, 130, 246, 0.1)',
-        yellow: 'rgba(251, 191, 36, 0.1)',
-        green: 'rgba(34, 197, 94, 0.1)',
-        pink: 'rgba(236, 72, 153, 0.1)'
+        blue: 'rgba(173, 216, 230, 0.3)',
+        yellow: 'rgba(255, 255, 224, 0.5)',
+        green: 'rgba(144, 238, 144, 0.3)',
+        pink: 'rgba(255, 192, 203, 0.3)'
       };
-      styles.backgroundColor = overlays[settings.colorOverlay];
+      styles.backgroundColor = overlays[settings.colorOverlay as keyof typeof overlays];
     }
 
-    // Text spacing
-    if (settings.textSpacing !== 'normal') {
-      const spacings = { normal: '0', wide: '0.05em', 'extra-wide': '0.1em' };
-      styles.letterSpacing = spacings[settings.textSpacing];
+    if (settings.letterSpacing !== 'normal') {
+      const spacings = {
+        normal: '0.05em',
+        wide: '0.1em',
+        'extra-wide': '0.15em'
+      };
+      styles.letterSpacing = spacings[settings.letterSpacing as keyof typeof spacings] ?? spacings.normal;
     }
 
-    // Line height
-    if (settings.lineHeight !== 'normal') {
-      const heights = { normal: '1.5', relaxed: '1.75', loose: '2' };
-      styles.lineHeight = heights[settings.lineHeight];
+    if (settings.lineHeight && settings.lineHeight !== 'normal') {
+      const heights = {
+        normal: '1.5',
+        relaxed: '1.75',
+        loose: '2.0'
+      };
+      styles.lineHeight = heights[settings.lineHeight as keyof typeof heights];
     }
 
-    // Word spacing
     if (settings.wordSpacing !== 'normal') {
-      const spacings = { normal: '0', wide: '0.1em', 'extra-wide': '0.2em' };
-      styles.wordSpacing = spacings[settings.wordSpacing];
+      const spacings = {
+        normal: '0.05em',
+        wide: '0.1em',
+        'extra-wide': '0.15em'
+      };
+      styles.wordSpacing = spacings[settings.wordSpacing as keyof typeof spacings] ?? spacings.normal;
     }
 
-    // Simplified UI
     if (settings.simplifiedUI) {
-      styles.filter = 'none';
-      styles.boxShadow = 'none';
+      styles.fontFamily = 'system-ui, -apple-system, sans-serif';
     }
 
-    // Distraction reduction
     if (settings.distractionReduction) {
       styles.background = settings.darkMode ? '#1f2937' : '#ffffff';
-      styles.borderRadius = '0px';
     }
 
     return styles;
@@ -202,81 +285,64 @@ export function NeurodivergentWrapper({ children, settings, className = '' }: Ne
   const getCSSClasses = (): string => {
     let classes = className;
 
-    // High contrast
-    if (settings.highContrast) {
+    if (settings.colorTheme === 'high-contrast') {
       classes += ' high-contrast';
     }
 
-    // Reduced motion
     if (settings.reducedMotion) {
       classes += ' reduced-motion';
     }
 
-    // Enhanced focus
-    if (settings.focusIndicator) {
+    if (settings.enhancedFocusOutlines) {
       classes += ' enhanced-focus';
     }
 
-    // Simplified UI
     if (settings.simplifiedUI) {
       classes += ' simplified-ui';
     }
 
-    // Distraction reduction
     if (settings.distractionReduction) {
-      classes += ' distraction-reduced';
+      classes += ' distraction-reduction';
     }
 
-    // Cognitive load
     if (settings.cognitiveLoad === 'minimal') {
-      classes += ' minimal-ui';
+      classes += ' cognitive-load-minimal';
     } else if (settings.cognitiveLoad === 'reduced') {
-      classes += ' reduced-ui';
+      classes += ' cognitive-load-reduced';
     }
 
-    // Color themes
     if (settings.colorTheme === 'dyslexia-friendly') {
-      classes += ' dyslexia-friendly';
+      classes += ' color-theme-dyslexia-friendly';
     } else if (settings.colorTheme === 'autism-friendly') {
-      classes += ' autism-friendly';
+      classes += ' color-theme-autism-friendly';
     }
 
-    // Text spacing
-    if (settings.textSpacing === 'wide') {
+    if (settings.letterSpacing === 'wide') {
       classes += ' text-spacing-wide';
-    } else if (settings.textSpacing === 'extra-wide') {
+    } else if (settings.letterSpacing === 'extra-wide') {
       classes += ' text-spacing-extra-wide';
     }
 
-    // Word spacing
     if (settings.wordSpacing === 'wide') {
       classes += ' word-spacing-wide';
     } else if (settings.wordSpacing === 'extra-wide') {
       classes += ' word-spacing-extra-wide';
     }
 
-    // Line height
     if (settings.lineHeight === 'relaxed') {
       classes += ' line-height-relaxed';
     } else if (settings.lineHeight === 'loose') {
       classes += ' line-height-loose';
     }
 
-    // Color overlay
     if (settings.colorOverlay !== 'none') {
       classes += ` color-overlay-${settings.colorOverlay}`;
     }
 
-    // Timer visibility
-    if (settings.timerDisplay) {
-      classes += ' timer-visible';
-    }
-
-    // Error handling style
     if (settings.errorHandling === 'gentle') {
-      classes += ' gentle-errors';
+      classes += ' error-handling-gentle';
     } else if (settings.errorHandling === 'encouraging') {
-      classes += ' encouraging-errors';
+      classes += ' error-handling-encouraging';
     }
 
     return classes;
@@ -285,7 +351,7 @@ export function NeurodivergentWrapper({ children, settings, className = '' }: Ne
   return (
     <div
       ref={wrapperRef}
-      className={getCSSClasses()}
+      className={`neurodivergent-wrapper ${getCSSClasses()}`}
       style={getWrapperStyles()}
     >
       {children}

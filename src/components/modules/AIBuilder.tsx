@@ -3,9 +3,11 @@ import { motion } from 'framer-motion';
 import { Brain, Play, RotateCcw, Download } from 'lucide-react';
 import { aiEngine } from '../../services/aiEngine';
 import type { AIModel as EngineModel, Dataset } from '../../services/aiEngine';
+import type { AccessibilitySettings } from '../AccessibilityPanel';
 
 interface AIBuilderProps {
   onComplete: (score: number) => void;
+  accessibilitySettings?: AccessibilitySettings;
 }
 
 interface AIModel {
@@ -33,7 +35,7 @@ interface ModelState {
   epoch: number;
 }
 
-export function AIBuilder({ onComplete }: AIBuilderProps) {
+export function AIBuilder({ onComplete, accessibilitySettings }: AIBuilderProps) {
   const [selectedModel, setSelectedModel] = useState<AIModel | null>(null);
   const [isBuilding, setIsBuilding] = useState(false);
   const [buildStep, setBuildStep] = useState(0);
