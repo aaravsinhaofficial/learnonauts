@@ -36,3 +36,37 @@ A drag-and-drop, gamified AI/ML learning platform designed specifically for neur
 - **Lucide React** for beautiful, consistent icons
 - **Tailwind CSS** with inline style fallbacks for reliability
 - **Framer Motion** for smooth animations (where supported)
+
+## 🚀 Deployment
+
+### GitHub Pages Deployment
+
+The project is configured for easy deployment to GitHub Pages:
+
+1. **Automatic Deployment (Recommended)**
+   - Push to the `main` branch
+   - GitHub Actions will automatically build and deploy to GitHub Pages
+
+2. **Manual Deployment**
+   ```bash
+   # Build the project
+   npm run build
+   
+   # Deploy to GitHub Pages
+   npm run deploy
+   ```
+
+3. **Configuration**
+   - The site is configured to be deployed at: `https://aaravsinhaofficial.github.io/learnonauts/`
+   - Base path is set to `/learnonauts/` in `vite.config.ts`
+   - A `.nojekyll` file is automatically added to the build to ensure proper file handling
+
+### Local Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
