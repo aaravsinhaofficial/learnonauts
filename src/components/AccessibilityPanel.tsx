@@ -33,9 +33,25 @@ interface AccessibilitySettings {
   minimalMode: boolean;
   cognitiveLoad: 'full' | 'reduced' | 'minimal';
   
+  // Executive Function Support
+  taskSequencing: boolean;
+  visualSchedule: boolean;
+  focusRetention: boolean;
+  
+  // Learning Patterns
+  repetitionPreference: boolean;
+  patternRecognition: boolean;
+  visualLearningMode: boolean;
+  auditoryLearningMode: boolean;
+  kinestheticLearningMode: boolean;
+  multiModalLearning: boolean;
+  conceptMappingSupport: boolean;
+  informationChunking: boolean;
+  
   // Controls
   errorHandling: 'standard' | 'gentle' | 'encouraging';
   feedbackStyle: 'standard' | 'visual' | 'audio' | 'both';
+  interactionStyle: 'standard' | 'step-by-step' | 'guided' | 'freestyle';
 }
 
 interface AccessibilityPanelProps {
@@ -46,7 +62,7 @@ interface AccessibilityPanelProps {
   onSettingsChange: (settings: AccessibilitySettings) => void;
 }
 
-type TabType = 'visual' | 'audio' | 'reading' | 'focus' | 'controls';
+type TabType = 'visual' | 'audio' | 'reading' | 'focus' | 'learning' | 'controls';
 
 const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
   isOpen,
@@ -105,9 +121,25 @@ const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
       minimalMode: false,
       cognitiveLoad: 'full',
       
+      // Executive Function Support
+      taskSequencing: false,
+      visualSchedule: false,
+      focusRetention: false,
+      
+      // Learning Patterns
+      repetitionPreference: false,
+      patternRecognition: false,
+      visualLearningMode: false,
+      auditoryLearningMode: false,
+      kinestheticLearningMode: false,
+      multiModalLearning: false,
+      conceptMappingSupport: false,
+      informationChunking: false,
+      
       // Controls
       errorHandling: 'standard',
       feedbackStyle: 'standard',
+      interactionStyle: 'standard',
     };
     setLocalSettings(defaultSettings);
     onSettingsChange(defaultSettings);
@@ -335,6 +367,7 @@ const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
     audio: '🔊',
     reading: '📖',
     focus: '🧠',
+    learning: '🧩',
     controls: '⚙️',
   };
 
@@ -346,12 +379,22 @@ const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
       handleSettingChange('focusSessions', true);
       handleSettingChange('simplifiedUI', true);
       handleSettingChange('sensoryBreaks', true);
+      handleSettingChange('taskSequencing', true);
+      handleSettingChange('focusRetention', true);
+      handleSettingChange('cognitiveLoad', 'reduced');
+      handleSettingChange('errorHandling', 'encouraging');
+      handleSettingChange('informationChunking', true);
+      handleSettingChange('kinestheticLearningMode', true);
+      handleSettingChange('interactionStyle', 'step-by-step');
     },
     autism: () => {
       handleSettingChange('colorTheme', 'autism-friendly');
       handleSettingChange('simplifiedUI', true);
       handleSettingChange('errorHandling', 'gentle');
       handleSettingChange('reducedMotion', true);
+      handleSettingChange('visualSchedule', true);
+      handleSettingChange('cognitiveLoad', 'minimal');
+      handleSettingChange('minimalMode', true);
     },
     dyslexia: () => {
       handleSettingChange('colorTheme', 'dyslexia-friendly');
@@ -359,6 +402,8 @@ const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
       handleSettingChange('letterSpacing', 'wide');
       handleSettingChange('lineHeight', 'relaxed');
       handleSettingChange('fontSize', 'large');
+      handleSettingChange('speechEnabled', true);
+      handleSettingChange('visualLearningMode', true);
     },
     visualProcessing: () => {
       handleSettingChange('colorTheme', 'high-contrast');
@@ -366,12 +411,15 @@ const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
       handleSettingChange('enhancedFocusOutlines', true);
       handleSettingChange('simplifiedUI', true);
       handleSettingChange('reducedMotion', true);
+      handleSettingChange('patternRecognition', true);
     },
     auditoryProcessing: () => {
       handleSettingChange('speechEnabled', true);
       handleSettingChange('speechInstructions', true);
       handleSettingChange('feedbackStyle', 'visual');
       handleSettingChange('readingGuide', true);
+      handleSettingChange('visualLearningMode', true);
+      handleSettingChange('visualSchedule', true);
     },
   };
 
@@ -741,6 +789,106 @@ const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
             </div>
           </>
         );
+        
+      case 'learning':
+        return (
+          <>
+            <div style={settingGroupStyle}>
+              <label style={settingLabelStyle}>Visual Learning</label>
+              <p style={settingDescStyle}>Enhanced visual cues and formatting</p>
+              {renderSwitch(
+                localSettings.visualLearningMode,
+                (value) => handleSettingChange('visualLearningMode', value),
+                'Visual learning mode'
+              )}
+            </div>
+            
+            <div style={settingGroupStyle}>
+              <label style={settingLabelStyle}>Auditory Learning</label>
+              <p style={settingDescStyle}>Audio cues and verbal explanations</p>
+              {renderSwitch(
+                localSettings.auditoryLearningMode,
+                (value) => handleSettingChange('auditoryLearningMode', value),
+                'Auditory learning mode'
+              )}
+            </div>
+            
+            <div style={settingGroupStyle}>
+              <label style={settingLabelStyle}>Kinesthetic Learning</label>
+              <p style={settingDescStyle}>Interactive and hands-on elements</p>
+              {renderSwitch(
+                localSettings.kinestheticLearningMode,
+                (value) => handleSettingChange('kinestheticLearningMode', value),
+                'Kinesthetic learning mode'
+              )}
+            </div>
+            
+            <div style={settingGroupStyle}>
+              <label style={settingLabelStyle}>Multi-Modal Learning</label>
+              <p style={settingDescStyle}>Combine multiple learning styles</p>
+              {renderSwitch(
+                localSettings.multiModalLearning,
+                (value) => handleSettingChange('multiModalLearning', value),
+                'Multi-modal learning'
+              )}
+            </div>
+            
+            <div style={settingGroupStyle}>
+              <label style={settingLabelStyle}>Concept Mapping</label>
+              <p style={settingDescStyle}>Visual representation of related concepts</p>
+              {renderSwitch(
+                localSettings.conceptMappingSupport,
+                (value) => handleSettingChange('conceptMappingSupport', value),
+                'Concept mapping support'
+              )}
+            </div>
+            
+            <div style={settingGroupStyle}>
+              <label style={settingLabelStyle}>Information Chunking</label>
+              <p style={settingDescStyle}>Break content into manageable pieces</p>
+              {renderSwitch(
+                localSettings.informationChunking,
+                (value) => handleSettingChange('informationChunking', value),
+                'Information chunking'
+              )}
+            </div>
+            
+            <div style={settingGroupStyle}>
+              <label style={settingLabelStyle}>Repetition Preference</label>
+              <p style={settingDescStyle}>Highlight key points for review</p>
+              {renderSwitch(
+                localSettings.repetitionPreference,
+                (value) => handleSettingChange('repetitionPreference', value),
+                'Repetition preference'
+              )}
+            </div>
+            
+            <div style={settingGroupStyle}>
+              <label style={settingLabelStyle}>Pattern Recognition</label>
+              <p style={settingDescStyle}>Highlight patterns in information</p>
+              {renderSwitch(
+                localSettings.patternRecognition,
+                (value) => handleSettingChange('patternRecognition', value),
+                'Pattern recognition'
+              )}
+            </div>
+            
+            <div style={settingGroupStyle}>
+              <label style={settingLabelStyle}>Interaction Style</label>
+              <p style={settingDescStyle}>How you prefer to interact with content</p>
+              {renderSelect(
+                localSettings.interactionStyle,
+                [
+                  { value: 'standard', label: 'Standard - Default interaction style' },
+                  { value: 'step-by-step', label: 'Step-by-Step - Clear sequential instructions' },
+                  { value: 'guided', label: 'Guided - Detailed explanations and examples' },
+                  { value: 'freestyle', label: 'Freestyle - Flexible exploration' },
+                ],
+                (value) => handleSettingChange('interactionStyle', value)
+              )}
+            </div>
+          </>
+        );
 
       case 'controls':
         return (
@@ -902,7 +1050,7 @@ const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
         </div>
 
         <div style={tabContainerStyle}>
-          {(['visual', 'audio', 'reading', 'focus', 'controls'] as const).map((tab) => (
+          {(['visual', 'audio', 'reading', 'focus', 'learning', 'controls'] as const).map((tab) => (
             <button
               key={tab}
               style={activeTab === tab ? activeTabStyle : tabStyle}
@@ -983,9 +1131,25 @@ export const defaultAccessibilitySettings: AccessibilitySettings = {
   minimalMode: false,
   cognitiveLoad: 'full',
   
+  // Executive Function Support
+  taskSequencing: false,
+  visualSchedule: false,
+  focusRetention: false,
+  
+  // Learning Patterns
+  repetitionPreference: false,
+  patternRecognition: false,
+  visualLearningMode: false,
+  auditoryLearningMode: false,
+  kinestheticLearningMode: false,
+  multiModalLearning: false,
+  conceptMappingSupport: false,
+  informationChunking: false,
+  
   // Controls
   errorHandling: 'standard',
   feedbackStyle: 'standard',
+  interactionStyle: 'standard',
 };
 
 export type { AccessibilitySettings };

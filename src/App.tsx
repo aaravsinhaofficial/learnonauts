@@ -16,6 +16,10 @@ import { FocusTimer } from './components/FocusTimer';
 import { AccessibilityDemo } from './components/AccessibilityDemo';
 import { useAuth } from './context/AuthContext';
 import { speechManager } from './utils/speechSynthesis';
+import { TimerControl } from './components/TimerControl';
+import { TaskBreakdown } from './components/TaskBreakdown';
+import { TaskSequencer } from './components/TaskSequencer';
+import { adhdSettings, autismSettings, dyslexiaSettings } from './utils/accessibilitySettings';
 
 function App() {
   const { user, isAuthenticated, login, signup, updateProgress } = useAuth();
@@ -1330,6 +1334,20 @@ function App() {
           // Optional: trigger a gentle celebration using speech manager
           if (accessibilitySettings.soundEnabled) {
             speechManager.speakFocusComplete('focus');
+          }
+        }}
+      />
+      
+      {/* Advanced Timer Control */}
+      <TimerControl 
+        settings={accessibilitySettings}
+        durationMinutes={25}
+        onComplete={() => {
+          if (accessibilitySettings.speechEnabled) {
+            speechManager.speak(
+              "Great job completing your focus session! Time for a short break.",
+              { rate: accessibilitySettings.speechSpeed, volume: accessibilitySettings.speechVolume }
+            );
           }
         }}
       />

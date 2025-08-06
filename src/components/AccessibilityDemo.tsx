@@ -1,8 +1,9 @@
-// filepath: /Users/aaravsinha/learnonaut/src/components/AccessibilityDemo.tsx
 import { motion } from 'framer-motion';
 import type { AccessibilitySettings } from './AccessibilityPanel';
 import { useAccessibilityAwareError } from './AccessibilityAwareError';
 import { speechManager } from '../utils/speechSynthesis';
+import { TaskBreakdown } from './TaskBreakdown';
+import { TaskSequencer } from './TaskSequencer';
 
 interface AccessibilityDemoProps {
   settings: AccessibilitySettings;
@@ -373,8 +374,241 @@ export function AccessibilityDemo({ settings }: AccessibilityDemoProps) {
               <li>Sensory Breaks: {settings.sensoryBreaks ? 'Enabled' : 'Disabled'}</li>
             </ul>
           </div>
+
+          <div>
+            <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#0369a1', marginBottom: '0.5rem' }}>
+              Executive Function
+            </h3>
+            <ul style={{ fontSize: '0.875rem', color: '#6b7280', paddingLeft: '1.5rem' }}>
+              <li>Task Sequencing: {settings.taskSequencing ? 'On' : 'Off'}</li>
+              <li>Visual Schedule: {settings.visualSchedule ? 'On' : 'Off'}</li>
+              <li>Focus Retention: {settings.focusRetention ? 'On' : 'Off'}</li>
+              <li>Cognitive Load: {settings.cognitiveLoad}</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#0369a1', marginBottom: '0.5rem' }}>
+              Learning Patterns
+            </h3>
+            <ul style={{ fontSize: '0.875rem', color: '#6b7280', paddingLeft: '1.5rem' }}>
+              <li>Visual Learning: {settings.visualLearningMode ? 'On' : 'Off'}</li>
+              <li>Auditory Learning: {settings.auditoryLearningMode ? 'On' : 'Off'}</li>
+              <li>Kinesthetic Learning: {settings.kinestheticLearningMode ? 'On' : 'Off'}</li>
+              <li>Multi-Modal Learning: {settings.multiModalLearning ? 'On' : 'Off'}</li>
+              <li>Information Chunking: {settings.informationChunking ? 'On' : 'Off'}</li>
+              <li>Concept Mapping: {settings.conceptMappingSupport ? 'On' : 'Off'}</li>
+              <li>Interaction Style: {settings.interactionStyle}</li>
+            </ul>
+          </div>
         </div>
       </motion.div>
+      
+      {/* Executive Function Support Demo */}
+      {(settings.taskSequencing || settings.visualSchedule) && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            backgroundColor: '#f9fafb', 
+            borderRadius: '0.75rem', 
+            padding: '1.5rem',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+            marginBottom: '2rem'
+          }}
+        >
+          <h2 style={{ 
+            fontSize: '1.5rem', 
+            fontWeight: '700', 
+            color: '#4f46e5', 
+            marginBottom: '1rem',
+            textAlign: 'center'
+          }}>
+            🧠 Executive Function Support
+          </h2>
+          
+          {settings.taskSequencing && (
+            <TaskBreakdown
+              settings={settings}
+              mainTask="Learn About Accessibility Features"
+              suggestedSubTasks={[
+                "Review visual settings options",
+                "Test speech synthesis features",
+                "Explore reading assistance tools",
+                "Try focus and attention features",
+                "Test error handling styles"
+              ]}
+              onAllComplete={() => {
+                if (settings.speechEnabled) {
+                  speechManager.speak(
+                    "Congratulations on completing all the steps! You've successfully learned about accessibility features.",
+                    { rate: settings.speechSpeed, volume: settings.speechVolume }
+                  );
+                }
+              }}
+            />
+          )}
+          
+          {settings.visualSchedule && (
+            <div style={{ marginTop: '2rem' }}>
+              <TaskSequencer
+                settings={settings}
+                steps={[
+                  {
+                    id: 'step1',
+                    title: 'Introduction to Accessibility',
+                    description: 'Learn why accessibility is important for all users.',
+                    completed: false
+                  },
+                  {
+                    id: 'step2',
+                    title: 'Customize Visual Settings',
+                    description: 'Adjust colors, fonts, and visual preferences.',
+                    completed: false
+                  },
+                  {
+                    id: 'step3',
+                    title: 'Configure Audio Features',
+                    description: 'Set up speech synthesis and audio cues.',
+                    completed: false
+                  },
+                  {
+                    id: 'step4',
+                    title: 'Test Focus Tools',
+                    description: 'Try timers, break reminders, and focus aids.',
+                    completed: false
+                  }
+                ]}
+                onStepComplete={(stepId) => {
+                  console.log(`Completed step ${stepId}`);
+                  if (settings.speechEnabled) {
+                    speechManager.speakEncouragement();
+                  }
+                }}
+              />
+            </div>
+          )}
+        </motion.div>
+      )}
+      
+      {/* Learning Patterns Demo */}
+      {(settings.visualLearningMode || settings.auditoryLearningMode || settings.kinestheticLearningMode || 
+        settings.multiModalLearning || settings.conceptMappingSupport || settings.informationChunking) && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            backgroundColor: '#f9fafb', 
+            borderRadius: '0.75rem', 
+            padding: '1.5rem',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+            marginBottom: '2rem'
+          }}
+        >
+          <h2 style={{ 
+            fontSize: '1.5rem', 
+            fontWeight: '700', 
+            color: '#4f46e5', 
+            marginBottom: '1rem',
+            textAlign: 'center'
+          }}>
+            🧠 Learning Pattern Support
+          </h2>
+          
+          <div className="text-content" style={{ marginBottom: '1.5rem' }}>
+            <p className="text-paragraph" style={{ marginBottom: '1rem' }}>
+              This section demonstrates how content adapts based on your preferred learning style.
+            </p>
+            
+            <div className={`key-concept ${settings.repetitionPreference ? 'key-point' : ''}`}>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+                Key Concept: Neurodivergent Learning
+              </h3>
+              <p>
+                Neurodivergent individuals often have unique learning styles that may include visual, auditory, or 
+                kinesthetic preferences. By providing content in multiple formats, we can help ensure that information 
+                is accessible to everyone.
+              </p>
+            </div>
+            
+            {settings.informationChunking && (
+              <div style={{ marginTop: '1.5rem' }}>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+                  Information Chunking
+                </h3>
+                <p>
+                  Breaking information into manageable chunks helps reduce cognitive load and makes it easier 
+                  to process and remember content.
+                </p>
+                <ul style={{ marginLeft: '1.5rem', marginTop: '0.5rem' }}>
+                  <li>Smaller units of information are easier to process</li>
+                  <li>Visual separators help distinguish between different concepts</li>
+                  <li>Proper spacing reduces visual overwhelm</li>
+                </ul>
+              </div>
+            )}
+            
+            {settings.conceptMappingSupport && (
+              <div className="concept-map" style={{ marginTop: '1.5rem' }}>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+                  Concept Mapping
+                </h3>
+                <div className="concept-node">
+                  <strong>Accessibility</strong>
+                  <ul style={{ marginLeft: '1rem', marginTop: '0.5rem' }}>
+                    <li>Visual Accommodations</li>
+                    <li>Auditory Support</li>
+                    <li>Motor/Kinesthetic Features</li>
+                  </ul>
+                </div>
+                <div className="concept-node">
+                  <strong>Learning Patterns</strong>
+                  <ul style={{ marginLeft: '1rem', marginTop: '0.5rem' }}>
+                    <li>Visual Learning</li>
+                    <li>Auditory Learning</li>
+                    <li>Kinesthetic Learning</li>
+                    <li>Multi-Modal Approaches</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className="content-block" style={{ marginTop: '1.5rem' }}>
+            <div className={`step ${settings.interactionStyle === 'step-by-step' ? 'instruction' : ''}`}>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+                Try Different Settings
+              </h3>
+              <p>
+                Experiment with different learning pattern settings to see how the content adapts to your 
+                preferences. You can enable or disable various features in the Accessibility Panel.
+              </p>
+              <div style={{ marginTop: '1rem' }}>
+                <button
+                  className="interactive-element control"
+                  onClick={() => {
+                    console.log('Opening accessibility panel');
+                    alert('Click the gear ⚙️ icon to change your learning pattern settings');
+                  }}
+                  style={{
+                    backgroundColor: '#8b5cf6',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '0.5rem',
+                    padding: '0.75rem 1.5rem',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Adjust Learning Pattern Settings
+                </button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
       
       <div style={{ textAlign: 'center' }}>
         <button

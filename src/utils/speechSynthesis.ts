@@ -238,3 +238,12 @@ export const speakError = (error: string, style?: 'standard' | 'gentle' | 'encou
 export const speakBreakReminder = () => speechManager.speakBreakReminder();
 export const speakFocusComplete = (sessionType: string) => speechManager.speakFocusComplete(sessionType);
 export const speakProgress = (progress: number, total: number) => speechManager.speakProgress(progress, total);
+
+// Add new exports for learning pattern speech functions
+export const speakVisualConcept = (concept: string) => speechManager.speakVisualConcept(concept);
+export const speakAuditoryExplanation = (explanation: string) => speechManager.speakAuditoryExplanation(explanation);
+export const speakKinestheticPrompt = (action: string) => speechManager.speakKinestheticPrompt(action);
+export const speakInformationChunk = (chunk: string, chunkNumber: number, totalChunks: number) => 
+  speechManager.speakInformationChunk(chunk, chunkNumber, totalChunks);
+export const speakConceptRelationship = (concept1: string, relationship: string, concept2: string) => 
+  speechManager.speakConceptRelationship(concept1, relationship, concept2);
