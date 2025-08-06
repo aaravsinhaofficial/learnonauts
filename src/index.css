@@ -319,3 +319,112 @@ body {
   padding: 12px !important;
   border-radius: 8px !important;
 }
+
+/* Root CSS variables for themes */
+:root {
+  /* Default light theme variables */
+  --background: #f8fafc;
+  --card-background: #ffffff;
+  --primary-text: #111827;
+  --secondary-text: #4b5563;
+  --accent-color: #8b5cf6;
+  --secondary-accent: #2563eb;
+  --success-color: #10b981;
+  --error-color: #ef4444;
+  --border-color: #e5e7eb;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --input-background: #f3f4f6;
+  --hover-color: rgba(139, 92, 246, 0.1);
+}
+
+/* Dark theme variables */
+.dark-mode {
+  --background: #111827;
+  --card-background: #1f2937;
+  --primary-text: #f9fafb;
+  --secondary-text: #d1d5db;
+  --accent-color: #a78bfa;
+  --secondary-accent: #60a5fa;
+  --success-color: #34d399;
+  --error-color: #f87171;
+  --border-color: #374151;
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  --input-background: #374151;
+  --hover-color: rgba(167, 139, 250, 0.2);
+}
+
+/* High contrast theme */
+.high-contrast {
+  --background: #000000;
+  --card-background: #111111;
+  --primary-text: #ffffff;
+  --secondary-text: #ffffff;
+  --accent-color: #ffff00;
+  --secondary-accent: #00ffff;
+  --success-color: #00ff00;
+  --error-color: #ff0000;
+  --border-color: #ffffff;
+  --shadow-color: rgba(255, 255, 255, 0.3);
+  --input-background: #333333;
+  --hover-color: rgba(255, 255, 0, 0.3);
+}
+
+/* Dyslexia-friendly theme */
+.dyslexia-friendly {
+  --background: #f8f8f8;
+  --card-background: #fafafa;
+  --primary-text: #333333;
+  --secondary-text: #555555;
+  --accent-color: #0077cc;
+  --secondary-accent: #009988;
+  --border-color: #dddddd;
+  font-family: 'OpenDyslexic', sans-serif !important;
+  letter-spacing: 0.05em;
+  word-spacing: 0.1em;
+  line-height: 1.8;
+}
+
+/* Autism-friendly theme */
+.autism-friendly {
+  --background: #f0f4f8;
+  --card-background: #ffffff;
+  --primary-text: #2d3748;
+  --secondary-text: #4a5568;
+  --accent-color: #4299e1;
+  --secondary-accent: #38b2ac;
+  --border-color: #e2e8f0;
+  --shadow-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Warm theme */
+.warm {
+  --background: #fef6e4;
+  --card-background: #ffffff;
+  --primary-text: #001858;
+  --secondary-text: #5f6c7b;
+  --accent-color: #f582ae;
+  --secondary-accent: #f3d2c1;
+  --border-color: #fef6e4;
+}
+
+/* Cool theme */
+.cool {
+  --background: #e0f2fe;
+  --card-background: #ffffff;
+  --primary-text: #0f172a;
+  --secondary-text: #334155;
+  --accent-color: #3b82f6;
+  --secondary-accent: #7dd3fc;
+  --border-color: #bae6fd;
+}
+
+/* Apply CSS variables to base elements */
+body {
+  background-color: var(--background);
+  color: var(--primary-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+button, a {
+  transition: all 0.3s ease;
+}

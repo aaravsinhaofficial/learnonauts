@@ -35,6 +35,21 @@ export function NeurodivergentWrapper({ children, settings, className = '' }: Ne
   }, [settings.readingGuide]);
 
   useEffect(() => {
+    // Apply dark mode to the entire document
+    if (settings.darkMode) {
+      document.documentElement.classList.add('dark-mode');
+    } else {
+      document.documentElement.classList.remove('dark-mode');
+    }
+
+    // Apply color theme to document
+    document.documentElement.classList.remove(
+      'high-contrast', 'dyslexia-friendly', 'autism-friendly', 'warm', 'cool'
+    );
+    if (settings.colorTheme !== 'default') {
+      document.documentElement.classList.add(settings.colorTheme);
+    }
+
     // Add dynamic styles to document head
     const styleId = 'neurodivergent-styles';
     let existingStyle = document.getElementById(styleId) as HTMLStyleElement;
@@ -195,7 +210,7 @@ export function NeurodivergentWrapper({ children, settings, className = '' }: Ne
       
       /* Distraction reduction */
       .distraction-reduction {
-        background: ${settings.darkMode ? '#1f2937' : '#ffffff'} !important;
+        background: var(--card-background) !important;
         border: none !important;
         box-shadow: none !important;
       }
