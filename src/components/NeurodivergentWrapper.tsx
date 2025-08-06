@@ -34,21 +34,58 @@ export function NeurodivergentWrapper({ children, settings, className = '' }: Ne
     }
   }, [settings.readingGuide]);
 
+  // We need to apply theme changes in a specific order to prevent conflicts
   useEffect(() => {
-    // Apply dark mode to the entire document
-    if (settings.darkMode) {
-      document.documentElement.classList.add('dark-mode');
-    } else {
-      document.documentElement.classList.remove('dark-mode');
-    }
-
-    // Apply color theme to document
+    // Force a redraw of the theme by briefly adding and removing a dummy class
+    document.documentElement.classList.add('theme-transition');
+    
+    // First remove all theme classes to start fresh
     document.documentElement.classList.remove(
-      'high-contrast', 'dyslexia-friendly', 'autism-friendly', 'warm', 'cool'
+      'dark-mode',
+      'high-contrast', 
+      'dyslexia-friendly', 
+      'autism-friendly', 
+      'warm', 
+      'cool'
     );
+    
+    // First apply the color theme
     if (settings.colorTheme !== 'default') {
       document.documentElement.classList.add(settings.colorTheme);
     }
+    
+    // Then apply dark mode if it's enabled (this will override some theme colors)
+    if (settings.darkMode) {
+      document.documentElement.classList.add('dark-mode');
+      
+      // Apply these styles to the body and html elements as well for full coverage
+      document.body.style.backgroundColor = 'var(--bg-primary)';
+      document.body.style.color = 'var(--text-primary)';
+      document.documentElement.style.backgroundColor = 'var(--bg-primary)';
+      document.documentElement.style.color = 'var(--text-primary)';
+    } else {
+      // Reset to default if dark mode is disabled
+      document.body.style.backgroundColor = '';
+      document.body.style.color = '';
+      document.documentElement.style.backgroundColor = '';
+      document.documentElement.style.color = '';
+    }
+    
+    // Apply reduced motion
+    if (settings.reducedMotion) {
+      document.documentElement.classList.add('reduced-motion');
+    } else {
+      document.documentElement.classList.remove('reduced-motion');
+    }
+    
+    // Force a repaint to ensure variables are recalculated
+    // This forces the browser to recalculate styles before proceeding
+    document.documentElement.offsetHeight;
+    
+    // Remove transition class after a slight delay to ensure CSS transitions work
+    setTimeout(() => {
+      document.documentElement.classList.remove('theme-transition');
+    }, 50);
 
     // Add dynamic styles to document head
     const styleId = 'neurodivergent-styles';
@@ -245,6 +282,26 @@ export function NeurodivergentWrapper({ children, settings, className = '' }: Ne
       }
     `;
   }, [settings]);
+
+  // Additional CSS style to ensure dark mode properly applies
+  // to the entire document, not just the wrapper
+  useEffect(() => {
+    // Apply these styles to the body element as well for full coverage
+    if (settings.darkMode) {
+      document.body.style.backgroundColor = 'var(--background-color)';
+      document.body.style.color = 'var(--text-color)';
+    } else {
+      // Reset to default if dark mode is disabled
+      document.body.style.backgroundColor = '';
+      document.body.style.color = '';
+    }
+
+    return () => {
+      // Cleanup when component unmounts
+      document.body.style.backgroundColor = '';
+      document.body.style.color = '';
+    };
+  }, [settings.darkMode]);
 
   const getWrapperStyles = (): React.CSSProperties => {
     const styles: React.CSSProperties = {};

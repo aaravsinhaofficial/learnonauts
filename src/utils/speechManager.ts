@@ -1,5 +1,4 @@
-// filepath: /Users/aaravsinha/learnonaut/src/utils/speechSynthesis.ts
-// Speech synthesis utility for neurodivergent-friendly features
+// Enhanced speech synthesis utility for neurodivergent-friendly features
 import { initSpeechSynthesis, getVoicesWithRetry } from './speechAdapter';
 
 export interface SpeechOptions {
@@ -92,7 +91,7 @@ class SpeechManager {
           utterance.voice = finalOptions.voice;
         } else if (voices.length > 0) {
           // Use default voice if available
-          const defaultVoice = voices.find((voice) => voice.default) || voices[0];
+          const defaultVoice = voices.find(voice => voice.default) || voices[0];
           utterance.voice = defaultVoice;
         }
 

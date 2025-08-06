@@ -320,7 +320,6 @@ body {
   border-radius: 8px !important;
 }
 
-/* Root CSS variables for themes */
 :root {
   /* Default light theme variables */
   --background: #f8fafc;
@@ -335,6 +334,12 @@ body {
   --shadow-color: rgba(0, 0, 0, 0.1);
   --input-background: #f3f4f6;
   --hover-color: rgba(139, 92, 246, 0.1);
+  --button-text: #ffffff;
+  --disabled-color: #9ca3af;
+  --warning-color: #f59e0b;
+  --warning-muted: #fef3c7;
+  --error-muted: #fee2e2;
+  --success-muted: #d1fae5;
 }
 
 /* Dark theme variables */
@@ -351,6 +356,12 @@ body {
   --shadow-color: rgba(0, 0, 0, 0.5);
   --input-background: #374151;
   --hover-color: rgba(167, 139, 250, 0.2);
+  --button-text: #ffffff;
+  --disabled-color: #6b7280;
+  --warning-color: #fbbf24;
+  --warning-muted: #422006;
+  --error-muted: #450a0a;
+  --success-muted: #064e3b;
 }
 
 /* High contrast theme */
@@ -425,6 +436,84 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-button, a {
+/* Theme transition helper class */
+.theme-transition {
+  transition: none !important;
+}
+
+/* Make sure all elements use theme variables */
+button, input, select, textarea, a, div, p, span {
+  color: inherit;
   transition: all 0.3s ease;
+}
+
+.card, .card-like {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
+  color: var(--primary-text);
+}
+
+/* Make sure SVG icons get theme colors */
+svg {
+  color: currentColor;
+}
+
+/* Root CSS variables for theming */
+:root {
+  --background-color: #ffffff;
+  --text-color: #111827;
+  --border-color: #e5e7eb;
+  --primary-color: #3b82f6;
+  --secondary-color: #8b5cf6;
+  --success-color: #10b981;
+  --error-color: #ef4444;
+  --warning-color: #f59e0b;
+}
+
+/* Dark mode theme variables */
+.dark-mode {
+  --background-color: #1a202c;
+  --text-color: #f7fafc;
+  --border-color: #4b5563;
+  --primary-color: #60a5fa;
+  --secondary-color: #a78bfa;
+  --success-color: #34d399;
+  --error-color: #f87171;
+  --warning-color: #fbbf24;
+}
+
+/* High contrast theme variables */
+.high-contrast {
+  --background-color: #ffffff;
+  --text-color: #000000;
+  --border-color: #000000;
+  --primary-color: #0000ff;
+  --secondary-color: #6b21a8;
+  --success-color: #008000;
+  --error-color: #ff0000;
+  --warning-color: #ff8000;
+}
+
+/* Autism-friendly theme variables */
+.autism-friendly {
+  --background-color: #f0f4f8;
+  --text-color: #2d3748;
+  --border-color: #cbd5e0;
+  --primary-color: #4299e1;
+  --secondary-color: #9f7aea;
+  --success-color: #38b2ac;
+  --error-color: #f56565;
+  --warning-color: #ed8936;
+}
+
+/* Dyslexia-friendly theme variables */
+.dyslexia-friendly {
+  --background-color: #fffef7;
+  --text-color: #1a202c;
+  --border-color: #e2e8f0;
+  --primary-color: #4c51bf;
+  --secondary-color: #6b46c1;
+  --success-color: #2f855a;
+  --error-color: #c53030;
+  --warning-color: #c05621;
 }

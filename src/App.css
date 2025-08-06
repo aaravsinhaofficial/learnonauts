@@ -40,3 +40,45 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Theme transition - important for proper theme/dark mode switching */
+.theme-transition {
+  transition: background-color 0.3s ease, color 0.3s ease !important;
+}
+
+/* Ensure CSS custom properties are properly recalculated */
+.dark-mode {
+  --background-color: #1a202c;
+  --text-color: #f7fafc;
+  --border-color: #2d3748;
+}
+
+html {
+  background-color: var(--background-color, #ffffff);
+  color: var(--text-color, #000000);
+}
+
+/* Force dark mode across all nested components */
+.dark-mode * {
+  background-color: var(--background-color, #1a202c);
+  color: var(--text-color, #f7fafc);
+  border-color: var(--border-color, #2d3748);
+}
+
+/* Override for inputs and controls */
+.dark-mode input,
+.dark-mode button,
+.dark-mode select,
+.dark-mode textarea {
+  background-color: #2d3748;
+  color: #f7fafc;
+  border: 1px solid #4a5568;
+}
+
+/* Override for cards and containers */
+.dark-mode .card,
+.dark-mode .container,
+.dark-mode .panel {
+  background-color: #1f2937;
+  border-color: #4b5563;
+}

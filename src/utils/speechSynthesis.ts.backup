@@ -1,6 +1,5 @@
-// filepath: /Users/aaravsinha/learnonaut/src/utils/speechSynthesis.ts
 // Speech synthesis utility for neurodivergent-friendly features
-import { initSpeechSynthesis, getVoicesWithRetry } from './speechAdapter';
+import { initSpeechSynthesis, getVoicesWithRetry, speakWithChromeWorkaround } from './speechAdapter';
 
 export interface SpeechOptions {
   rate?: number;
@@ -38,24 +37,29 @@ class SpeechManager {
     }
   }
 
+  private handleVoicesChanged() {
+    // Speak any pending speech once voices are loaded
+    if (this.pendingSpeech && this.isEnabled && !this.isSpeaking) {
+      const textToSpeak = this.pendingSpeech;
+      this.pendingSpeech = null;
+      this.speak(textToSpeak).catch(err => console.error('Failed to speak pending text:', err));
+    }
+  }
+
   setEnabled(enabled: boolean) {
     this.isEnabled = enabled;
-    console.log(`Speech synthesis ${enabled ? 'enabled' : 'disabled'}`);
   }
 
   setDefaultRate(rate: number) {
     this.defaultOptions.rate = rate;
-    console.log(`Speech rate set to ${rate}`);
   }
   
   setDefaultVolume(volume: number) {
     this.defaultOptions.volume = volume;
-    console.log(`Speech volume set to ${volume}`);
   }
 
   async speak(text: string, options?: SpeechOptions): Promise<void> {
     if (!this.isEnabled) {
-      console.log('Speech is disabled, not speaking');
       return;
     }
 
@@ -63,8 +67,6 @@ class SpeechManager {
       console.warn('Speech synthesis not supported in this browser');
       return;
     }
-
-    console.log(`Speaking text: "${text}"`);
 
     // Cancel any ongoing speech
     this.cancel();
@@ -85,21 +87,19 @@ class SpeechManager {
         utterance.lang = finalOptions.lang || 'en-US';
 
         // Get available voices
-        const voices = window.speechSynthesis.getVoices();
-        console.log(`Available voices: ${voices.length}`);
+        const voices = this.getVoices();
         
         if (finalOptions.voice) {
           utterance.voice = finalOptions.voice;
         } else if (voices.length > 0) {
           // Use default voice if available
-          const defaultVoice = voices.find((voice) => voice.default) || voices[0];
+          const defaultVoice = voices.find(voice => voice.default) || voices[0];
           utterance.voice = defaultVoice;
         }
 
         utterance.onend = () => {
           this.isSpeaking = false;
           this.pendingSpeech = null;
-          console.log('Speech ended successfully');
           resolve();
         };
         
@@ -124,23 +124,29 @@ class SpeechManager {
         reject(error);
       }
     });
+      } catch (error) {
+        this.isSpeaking = false;
+        console.error('Failed to initialize speech:', error);
+        reject(error);
+      }
+    });
   }
 
   pause() {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.pause();
+    if ('speechSynthesis' in window) {
+      speechSynthesis.pause();
     }
   }
 
   resume() {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.resume();
+    if ('speechSynthesis' in window) {
+      speechSynthesis.resume();
     }
   }
 
   cancel() {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
     }
   }
 
@@ -150,11 +156,11 @@ class SpeechManager {
     }
     
     // Some browsers (like Chrome) need time to load voices
-    const voices = window.speechSynthesis.getVoices();
+    const voices = speechSynthesis.getVoices();
     
     if (voices.length === 0) {
       // Try to force load voices again
-      window.speechSynthesis.cancel();
+      speechSynthesis.cancel();
     }
     
     return voices;

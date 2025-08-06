@@ -625,7 +625,7 @@ export function AIBuilder({ onComplete, accessibilitySettings }: AIBuilderProps)
     return (
       <div style={{ 
         minHeight: '100vh', 
-        background: 'linear-gradient(135deg, var(--accent-color) 0%, var(--secondary-accent) 100%)',
+        background: 'var(--background)',
         padding: '2rem'
       }}>
         <div style={{ maxWidth: '80rem', margin: '0 auto' }}>
@@ -896,7 +896,7 @@ export function AIBuilder({ onComplete, accessibilitySettings }: AIBuilderProps)
     return (
       <div style={{ 
         minHeight: '100vh', 
-        background: 'linear-gradient(135deg, var(--accent-color) 0%, var(--secondary-accent) 100%)',
+        background: 'var(--background)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

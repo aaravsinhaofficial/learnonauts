@@ -31,9 +31,31 @@ function App() {
   const handleAccessibilitySettingsChange = (newSettings: AccessibilitySettings) => {
     setAccessibilitySettings(newSettings);
     
-    // Update speech manager
-    speechManager.setEnabled(newSettings.soundEnabled);
-    speechManager.setDefaultRate(newSettings.speechSpeed);
+    // Debug logs to track speech settings
+    console.log("Speech settings changed:", {
+      speechEnabled: newSettings.speechEnabled,
+      speechSpeed: newSettings.speechSpeed,
+      speechVolume: newSettings.speechVolume
+    });
+    
+    // Update speech manager with correct speech settings
+    speechManager.setEnabled(newSettings.speechEnabled);
+    
+    // Only set these if speech is enabled to avoid unnecessary processing
+    if (newSettings.speechEnabled) {
+      speechManager.setDefaultRate(newSettings.speechSpeed);
+      speechManager.setDefaultVolume(newSettings.speechVolume);
+      
+      // Test that speech is working after enabling
+      if (newSettings.speechEnabled !== accessibilitySettings.speechEnabled) {
+        console.log("Testing speech after enabling");
+        try {
+          speechManager.speak("Speech synthesis enabled.");
+        } catch (error) {
+          console.error("Failed to initialize speech synthesis:", error);
+        }
+      }
+    }
   };
 
   const handleModuleComplete = async (moduleId: string, score: number) => {

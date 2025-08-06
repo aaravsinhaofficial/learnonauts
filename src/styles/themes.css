@@ -1,0 +1,146 @@
+/* Theme Styles - Ensures proper application of themes and dark mode */
+
+/* Base theme transition */
+.theme-transition {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
+}
+
+/* Light mode (default) variables */
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --text-tertiary: #9ca3af;
+  --border-color: #e5e7eb;
+  --accent-color: #3b82f6;
+  --error-color: #ef4444;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --info-color: #0ea5e9;
+}
+
+/* Dark mode variables */
+.dark-mode {
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --bg-tertiary: #374151;
+  --text-primary: #f9fafb;
+  --text-secondary: #e5e7eb;
+  --text-tertiary: #9ca3af;
+  --border-color: #4b5563;
+  --accent-color: #60a5fa;
+  --error-color: #f87171;
+  --success-color: #34d399;
+  --warning-color: #fbbf24;
+  --info-color: #38bdf8;
+}
+
+/* High contrast theme */
+.high-contrast {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f0f0f0;
+  --bg-tertiary: #e0e0e0;
+  --text-primary: #000000;
+  --text-secondary: #222222;
+  --text-tertiary: #444444;
+  --border-color: #000000;
+  --accent-color: #0000ff;
+  --error-color: #cc0000;
+  --success-color: #008800;
+  --warning-color: #ff6600;
+  --info-color: #0066cc;
+  filter: contrast(1.2);
+}
+
+/* Dyslexia-friendly theme */
+.dyslexia-friendly {
+  --bg-primary: #fffef7;
+  --bg-secondary: #f8f7f0;
+  --bg-tertiary: #f0efe6;
+  --text-primary: #1a202c;
+  --text-secondary: #2d3748;
+  --text-tertiary: #4a5568;
+  --border-color: #cbd5e0;
+  font-family: 'OpenDyslexic', 'Comic Sans MS', sans-serif;
+  letter-spacing: 0.05em;
+  word-spacing: 0.1em;
+  line-height: 1.6;
+}
+
+/* Autism-friendly theme */
+.autism-friendly {
+  --bg-primary: #f0f4f8;
+  --bg-secondary: #e1e8f0;
+  --bg-tertiary: #d2ddea;
+  --text-primary: #2d3748;
+  --text-secondary: #4a5568;
+  --text-tertiary: #718096;
+  --border-color: #a0aec0;
+  --accent-color: #4299e1;
+  --error-color: #f56565;
+  --success-color: #38b2ac;
+  --warning-color: #ed8936;
+  --info-color: #4299e1;
+}
+
+/* Warm theme */
+.warm {
+  --bg-primary: #fffbeb;
+  --bg-secondary: #fef3c7;
+  --bg-tertiary: #fde68a;
+  --text-primary: #78350f;
+  --text-secondary: #92400e;
+  --text-tertiary: #b45309;
+  --border-color: #fbbf24;
+  --accent-color: #d97706;
+}
+
+/* Cool theme */
+.cool {
+  --bg-primary: #ecfdf5;
+  --bg-secondary: #d1fae5;
+  --bg-tertiary: #a7f3d0;
+  --text-primary: #064e3b;
+  --text-secondary: #065f46;
+  --text-tertiary: #047857;
+  --border-color: #10b981;
+  --accent-color: #059669;
+}
+
+/* Apply variables to elements */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.app-container {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+button, input, select, textarea {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.card, .panel, .modal {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+a {
+  color: var(--accent-color);
+}
+
+/* Ensure contrast in dark mode */
+.dark-mode button {
+  background-color: var(--bg-tertiary);
+}
+
+.dark-mode .card, .dark-mode .panel, .dark-mode .modal {
+  background-color: var(--bg-secondary);
+}
