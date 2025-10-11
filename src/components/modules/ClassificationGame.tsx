@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { DndContext, closestCenter, useDroppable } from '@dnd-kit/core';
+import { DndContext, closestCenter, useDroppable, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import type { DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Apple, Car, Cat, TreePine, Flower, Fish, CheckCircle, RotateCcw } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { AccessibilityAwareError, useAccessibilityAwareError } from '../AccessibilityAwareError';
 import type { AccessibilitySettings } from '../AccessibilityPanel';
 
@@ -154,6 +155,16 @@ export function ClassificationGame({ onComplete, accessibilitySettings }: Classi
   const [isChecked, setIsChecked] = useState(false);
   const [score, setScore] = useState(0);
   const { error, showError, clearError } = useAccessibilityAwareError();
+  const [showEducation, setShowEducation] = useState(true);
+  const [learningSectionExpanded, setLearningSectionExpanded] = useState(false);
+  
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -216,203 +227,375 @@ export function ClassificationGame({ onComplete, accessibilitySettings }: Classi
   }
 
   return (
-    <div style={{ maxWidth: '72rem', margin: '0 auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      {/* Header */}
-      <div style={{ textAlign: 'center' }}>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: '#111827', marginBottom: '1rem' }}>
-          Classification: Living vs Non-Living
-        </h1>
-        <p style={{ fontSize: '1.125rem', color: '#4b5563', marginBottom: '1.5rem' }}>
-          Drag the items below into the correct categories. Think about whether each item can grow, breathe, or move on its own!
-        </p>
-      </div>
-
-      <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        {/* Available Items */}
-        <div style={{ backgroundColor: '#f9fafb', borderRadius: '0.75rem', padding: '1.5rem' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#111827', marginBottom: '1rem' }}>Items to Sort</h2>
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', 
-            gap: '1rem' 
-          }}>
-            <SortableContext items={availableItems.map(item => item.id)} strategy={rectSortingStrategy}>
-              {availableItems.map(item => (
-                <DraggableItem key={item.id} item={item} />
-              ))}
-            </SortableContext>
-          </div>
-        </div>
-
-        {/* Drop Zones */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-          gap: '2rem' 
-        }}>
-          <div>
-            <DropZone
-              id="living-zone"
-              title="🌱 Living Things"
-              items={livingItems}
-              isCorrect={isChecked ? livingItems.every(item => item.category === 'living') : null}
-            />
-          </div>
-          
-          <div>
-            <DropZone
-              id="non-living-zone"
-              title="🏠 Non-Living Things"
-              items={nonLivingItems}
-              isCorrect={isChecked ? nonLivingItems.every(item => item.category === 'non-living') : null}
-            />
-          </div>
-        </div>
-      </DndContext>
-
-      {/* Controls */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-        <button
-          onClick={checkAnswers}
-          disabled={livingItems.length === 0 && nonLivingItems.length === 0}
-          style={{
-            backgroundColor: '#3b82f6',
-            color: 'white',
-            fontWeight: '500',
-            padding: '0.75rem 1.5rem',
-            borderRadius: '0.5rem',
-            border: 'none',
-            cursor: livingItems.length === 0 && nonLivingItems.length === 0 ? 'not-allowed' : 'pointer',
-            opacity: livingItems.length === 0 && nonLivingItems.length === 0 ? 0.5 : 1,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={(e) => {
-            if (!(livingItems.length === 0 && nonLivingItems.length === 0)) {
-              e.currentTarget.style.backgroundColor = '#2563eb';
-              e.currentTarget.style.transform = 'scale(1.05)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#3b82f6';
-            e.currentTarget.style.transform = 'scale(1)';
-          }}
-        >
-          <CheckCircle style={{ width: '1.25rem', height: '1.25rem' }} />
-          <span>Check Answers</span>
-        </button>
-
-        <button
-          onClick={resetGame}
-          style={{
-            backgroundColor: 'transparent',
-            color: '#3b82f6',
-            fontWeight: '500',
-            padding: '0.75rem 1.5rem',
-            borderRadius: '0.5rem',
-            border: '2px solid #3b82f6',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#3b82f6';
-            e.currentTarget.style.color = 'white';
-            e.currentTarget.style.transform = 'scale(1.05)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = '#3b82f6';
-            e.currentTarget.style.transform = 'scale(1)';
-          }}
-        >
-          <RotateCcw style={{ width: '1.25rem', height: '1.25rem' }} />
-          <span>Reset</span>
-        </button>
-      </div>
-
-      {/* Feedback */}
-      {feedback && (
-        <div
-          style={{
-            backgroundColor: score === 100 ? '#f0fdf4' : '#eff6ff',
-            border: `1px solid ${score === 100 ? '#10b981' : '#3b82f6'}`,
-            borderRadius: '0.75rem',
-            padding: '1.5rem',
-            textAlign: 'center',
-            animation: 'fadeIn 0.3s ease-out'
-          }}
-        >
-          <p style={{ fontSize: '1.125rem', fontWeight: '500', color: '#111827', marginBottom: score < 100 ? '1rem' : '0' }}>
-            {feedback}
-          </p>
-          {isChecked && score < 100 && (
-            <div>
-              <div style={{
-                width: '100%',
-                backgroundColor: '#e5e7eb',
-                borderRadius: '9999px',
-                height: '0.75rem',
-                marginBottom: '0.5rem'
-              }}>
-                <div 
+    <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
+      <div style={{ 
+        minHeight: '100vh', 
+        background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #bae6fd 100%)',
+        padding: '2rem'
+      }}>
+        <div style={{ maxWidth: '80rem', margin: '0 auto' }}>
+          {/* Educational Header Section */}
+          {showEducation && (
+            <motion.div
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              style={{
+                backgroundColor: 'white',
+                borderRadius: '1rem',
+                padding: '2rem',
+                marginBottom: '2rem',
+                boxShadow: '0 10px 25px -3px rgba(0, 0, 0, 0.1)',
+                border: '2px solid #0ea5e9'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🧠</div>
+                  <h2 style={{ fontSize: '1.75rem', fontWeight: '700', color: '#0f172a', marginBottom: '0.75rem' }}>
+                    Understanding Classification in AI
+                  </h2>
+                  <p style={{ fontSize: '1rem', color: '#475569', lineHeight: '1.7', marginBottom: '1rem' }}>
+                    Classification is one of the most fundamental concepts in artificial intelligence! 
+                    It's how AI systems learn to sort things into different categories, just like you're about to do.
+                  </p>
+                  
+                  <button
+                    onClick={() => setLearningSectionExpanded(!learningSectionExpanded)}
+                    style={{
+                      backgroundColor: '#0ea5e9',
+                      color: 'white',
+                      padding: '0.5rem 1rem',
+                      borderRadius: '0.5rem',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '600',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}
+                  >
+                    {learningSectionExpanded ? '📖 Hide Learning Guide' : '📚 Show Learning Guide'}
+                  </button>
+                </div>
+                
+                <button
+                  onClick={() => setShowEducation(false)}
                   style={{
-                    backgroundColor: '#3b82f6',
-                    height: '0.75rem',
-                    borderRadius: '9999px',
-                    transition: 'width 0.5s',
-                    width: `${score}%`
+                    backgroundColor: 'transparent',
+                    color: '#64748b',
+                    padding: '0.5rem',
+                    borderRadius: '0.5rem',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '1.5rem',
+                    lineHeight: '1'
                   }}
-                />
+                >
+                  ×
+                </button>
               </div>
-              <p style={{ fontSize: '0.875rem', color: '#4b5563' }}>Score: {score}%</p>
-            </div>
+              
+              {learningSectionExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  style={{
+                    marginTop: '1.5rem',
+                    borderTop: '2px solid #e0f2fe',
+                    paddingTop: '1.5rem'
+                  }}
+                >
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(18rem, 1fr))', gap: '1.5rem' }}>
+                    <div style={{
+                      backgroundColor: '#f0f9ff',
+                      borderRadius: '0.75rem',
+                      padding: '1.5rem',
+                      border: '2px solid #bae6fd'
+                    }}>
+                      <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>🎯</div>
+                      <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#0f172a', marginBottom: '0.5rem' }}>
+                        What is Classification?
+                      </h3>
+                      <p style={{ fontSize: '0.875rem', color: '#475569', lineHeight: '1.6' }}>
+                        Classification is teaching computers to organize things into groups based on their features. 
+                        For example, email filters classify messages as "spam" or "not spam" by learning patterns 
+                        from millions of examples.
+                      </p>
+                    </div>
+                    
+                    <div style={{
+                      backgroundColor: '#fef3c7',
+                      borderRadius: '0.75rem',
+                      padding: '1.5rem',
+                      border: '2px solid #fde68a'
+                    }}>
+                      <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>🔍</div>
+                      <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#0f172a', marginBottom: '0.5rem' }}>
+                        How AI Learns to Classify
+                      </h3>
+                      <p style={{ fontSize: '0.875rem', color: '#475569', lineHeight: '1.6' }}>
+                        AI uses algorithms like Decision Trees, Support Vector Machines, or Neural Networks. 
+                        They analyze thousands of examples, find patterns in the data, and build rules to 
+                        predict which category new items belong to.
+                      </p>
+                    </div>
+                    
+                    <div style={{
+                      backgroundColor: '#f0fdf4',
+                      borderRadius: '0.75rem',
+                      padding: '1.5rem',
+                      border: '2px solid #bbf7d0'
+                    }}>
+                      <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>💼</div>
+                      <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#0f172a', marginBottom: '0.5rem' }}>
+                        Real-World Applications
+                      </h3>
+                      <ul style={{ fontSize: '0.875rem', color: '#475569', lineHeight: '1.6', listStyle: 'disc', paddingLeft: '1.25rem' }}>
+                        <li>Medical diagnosis (detecting diseases from symptoms)</li>
+                        <li>Image recognition (face detection, object identification)</li>
+                        <li>Fraud detection (spotting unusual bank transactions)</li>
+                        <li>Speech recognition (understanding voice commands)</li>
+                      </ul>
+                    </div>
+                  </div>
+                  
+                  <div style={{
+                    backgroundColor: '#fef2f2',
+                    borderRadius: '0.75rem',
+                    padding: '1.5rem',
+                    marginTop: '1.5rem',
+                    border: '2px solid #fecaca'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'start', gap: '1rem' }}>
+                      <div style={{ fontSize: '2rem' }}>💡</div>
+                      <div style={{ flex: 1 }}>
+                        <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#0f172a', marginBottom: '0.5rem' }}>
+                          Key Concepts to Remember
+                        </h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(15rem, 1fr))', gap: '0.75rem', fontSize: '0.875rem', color: '#475569' }}>
+                          <div>
+                            <strong>Features:</strong> The characteristics AI uses to make decisions (like color, size, shape)
+                          </div>
+                          <div>
+                            <strong>Training Data:</strong> Examples that teach the AI what belongs in each category
+                          </div>
+                          <div>
+                            <strong>Accuracy:</strong> How often the AI makes correct classifications
+                          </div>
+                          <div>
+                            <strong>Overfitting:</strong> When AI memorizes examples instead of learning general patterns
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </motion.div>
           )}
-        </div>
-      )}
 
-      {/* Accessibility-Aware Error Display */}
-      {error && (
-        <AccessibilityAwareError
-          message={error.message}
-          errorHandling={accessibilitySettings?.errorHandling || 'standard'}
-          soundEnabled={accessibilitySettings?.soundEnabled || false}
-          onDismiss={clearError}
-        />
-      )}
+          {/* Existing game content */}
+          <div style={{ maxWidth: '72rem', margin: '0 auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            {/* Header */}
+            <div style={{ textAlign: 'center' }}>
+              <h1 style={{ fontSize: '2.5rem', fontWeight: '700', color: '#111827', marginBottom: '1rem' }}>
+                Classification: Living vs Non-Living
+              </h1>
+              <p style={{ fontSize: '1.125rem', color: '#4b5563', marginBottom: '1.5rem' }}>
+                Drag the items below into the correct categories. Think about whether each item can grow, breathe, or move on its own!
+              </p>
+            </div>
 
-      {/* Demo Error Button (for testing accessibility features) */}
-      {isChecked && score < 100 && (
-        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-          <button
-            onClick={() => showError('This is a demo error to show how neurodivergent-friendly error handling works! Try changing the error style in the accessibility panel.')}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#ef4444',
-              color: 'white',
-              border: 'none',
-              borderRadius: '0.5rem',
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#dc2626';
-              e.currentTarget.style.transform = 'scale(1.05)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#ef4444';
-              e.currentTarget.style.transform = 'scale(1)';
-            }}
-          >
-            🧠 Demo Neurodivergent-Friendly Error
-          </button>
+            <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              {/* Available Items */}
+              <div style={{ backgroundColor: '#f9fafb', borderRadius: '0.75rem', padding: '1.5rem' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#111827', marginBottom: '1rem' }}>Items to Sort</h2>
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', 
+                  gap: '1rem' 
+                }}>
+                  <SortableContext items={availableItems.map(item => item.id)} strategy={rectSortingStrategy}>
+                    {availableItems.map(item => (
+                      <DraggableItem key={item.id} item={item} />
+                    ))}
+                  </SortableContext>
+                </div>
+              </div>
+
+              {/* Drop Zones */}
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+                gap: '2rem' 
+              }}>
+                <div>
+                  <DropZone
+                    id="living-zone"
+                    title="🌱 Living Things"
+                    items={livingItems}
+                    isCorrect={isChecked ? livingItems.every(item => item.category === 'living') : null}
+                  />
+                </div>
+                
+                <div>
+                  <DropZone
+                    id="non-living-zone"
+                    title="🏠 Non-Living Things"
+                    items={nonLivingItems}
+                    isCorrect={isChecked ? nonLivingItems.every(item => item.category === 'non-living') : null}
+                  />
+                </div>
+              </div>
+            </DndContext>
+
+            {/* Controls */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+              <button
+                onClick={checkAnswers}
+                disabled={livingItems.length === 0 && nonLivingItems.length === 0}
+                style={{
+                  backgroundColor: '#3b82f6',
+                  color: 'white',
+                  fontWeight: '500',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  cursor: livingItems.length === 0 && nonLivingItems.length === 0 ? 'not-allowed' : 'pointer',
+                  opacity: livingItems.length === 0 && nonLivingItems.length === 0 ? 0.5 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  if (!(livingItems.length === 0 && nonLivingItems.length === 0)) {
+                    e.currentTarget.style.backgroundColor = '#2563eb';
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#3b82f6';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+              >
+                <CheckCircle style={{ width: '1.25rem', height: '1.25rem' }} />
+                <span>Check Answers</span>
+              </button>
+
+              <button
+                onClick={resetGame}
+                style={{
+                  backgroundColor: 'transparent',
+                  color: '#3b82f6',
+                  fontWeight: '500',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '0.5rem',
+                  border: '2px solid #3b82f6',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#3b82f6';
+                  e.currentTarget.style.color = 'white';
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = '#3b82f6';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+              >
+                <RotateCcw style={{ width: '1.25rem', height: '1.25rem' }} />
+                <span>Reset</span>
+              </button>
+            </div>
+
+            {/* Feedback */}
+            {feedback && (
+              <div
+                style={{
+                  backgroundColor: score === 100 ? '#f0fdf4' : '#eff6ff',
+                  border: `1px solid ${score === 100 ? '#10b981' : '#3b82f6'}`,
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem',
+                  textAlign: 'center',
+                  animation: 'fadeIn 0.3s ease-out'
+                }}
+              >
+                <p style={{ fontSize: '1.125rem', fontWeight: '500', color: '#111827', marginBottom: score < 100 ? '1rem' : '0' }}>
+                  {feedback}
+                </p>
+                {isChecked && score < 100 && (
+                  <div>
+                    <div style={{
+                      width: '100%',
+                      backgroundColor: '#e5e7eb',
+                      borderRadius: '9999px',
+                      height: '0.75rem',
+                      marginBottom: '0.5rem'
+                    }}>
+                      <div 
+                        style={{
+                          backgroundColor: '#3b82f6',
+                          height: '0.75rem',
+                          borderRadius: '9999px',
+                          transition: 'width 0.5s',
+                          width: `${score}%`
+                        }}
+                      />
+                    </div>
+                    <p style={{ fontSize: '0.875rem', color: '#4b5563' }}>Score: {score}%</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Accessibility-Aware Error Display */}
+            {error && (
+              <AccessibilityAwareError
+                message={error.message}
+                errorHandling={accessibilitySettings?.errorHandling || 'standard'}
+                soundEnabled={accessibilitySettings?.soundEnabled || false}
+                onDismiss={clearError}
+              />
+            )}
+
+            {/* Demo Error Button (for testing accessibility features) */}
+            {isChecked && score < 100 && (
+              <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+                <button
+                  onClick={() => showError('This is a demo error to show how neurodivergent-friendly error handling works! Try changing the error style in the accessibility panel.')}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '0.5rem',
+                    fontSize: '0.875rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#dc2626';
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#ef4444';
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                >
+                  🧠 Demo Neurodivergent-Friendly Error
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      )}
-    </div>
+      </div>
+    </DndContext>
   );
 }

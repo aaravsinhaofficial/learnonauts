@@ -1,4 +1,3 @@
-// filepath: /Users/aaravsinha/learnonaut/src/utils/speechSynthesis.ts
 // Speech synthesis utility for neurodivergent-friendly features
 import { initSpeechSynthesis, getVoicesWithRetry } from './speechAdapter';
 
@@ -37,6 +36,17 @@ class SpeechManager {
       });
     }
   }
+
+  // This method handles changes in voices
+  // It's kept for future use when we implement voice selection
+  /* private handleVoicesChanged() {
+    // Speak any pending speech once voices are loaded
+    if (this.pendingSpeech && this.isEnabled && !this.isSpeaking) {
+      const textToSpeak = this.pendingSpeech;
+      this.pendingSpeech = null;
+      this.speak(textToSpeak).catch(err => console.error('Failed to speak pending text:', err));
+    }
+  } */
 
   setEnabled(enabled: boolean) {
     this.isEnabled = enabled;
@@ -85,14 +95,14 @@ class SpeechManager {
         utterance.lang = finalOptions.lang || 'en-US';
 
         // Get available voices
-        const voices = window.speechSynthesis.getVoices();
+        const voices = this.getVoices();
         console.log(`Available voices: ${voices.length}`);
         
         if (finalOptions.voice) {
           utterance.voice = finalOptions.voice;
         } else if (voices.length > 0) {
           // Use default voice if available
-          const defaultVoice = voices.find((voice) => voice.default) || voices[0];
+          const defaultVoice = voices.find(voice => voice.default) || voices[0];
           utterance.voice = defaultVoice;
         }
 
@@ -148,22 +158,13 @@ class SpeechManager {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
       return [];
     }
-    
-    // Some browsers (like Chrome) need time to load voices
-    const voices = window.speechSynthesis.getVoices();
-    
-    if (voices.length === 0) {
-      // Try to force load voices again
-      window.speechSynthesis.cancel();
-    }
-    
-    return voices;
+    return window.speechSynthesis.getVoices();
   }
 
   // Neurodivergent-friendly preset messages
   async speakInstruction(instruction: string): Promise<void> {
     await this.speak(`Here's what to do: ${instruction}`, {
-      rate: this.defaultOptions.rate || 0.9,
+      rate: typeof this.defaultOptions.rate === 'number' ? this.defaultOptions.rate : 0.9,
       pitch: 1.1
     });
   }
@@ -195,6 +196,43 @@ class SpeechManager {
     }
 
     await this.speak(prefix + error, options);
+  }
+  
+  // Learning Pattern specific speech methods
+  async speakVisualConcept(concept: string): Promise<void> {
+    await this.speak(`Visualize this concept: ${concept}. Picture it in your mind.`, {
+      rate: 0.85,
+      pitch: 1.05
+    });
+  }
+  
+  async speakAuditoryExplanation(explanation: string): Promise<void> {
+    await this.speak(`Listen carefully to this explanation: ${explanation}`, {
+      rate: 0.8,
+      pitch: 1.0,
+      volume: 0.9
+    });
+  }
+  
+  async speakKinestheticPrompt(action: string): Promise<void> {
+    await this.speak(`Now, try this activity: ${action}. This will help you engage with the concept.`, {
+      rate: 0.9,
+      pitch: 1.1
+    });
+  }
+  
+  async speakInformationChunk(chunk: string, chunkNumber: number, totalChunks: number): Promise<void> {
+    await this.speak(`Information part ${chunkNumber} of ${totalChunks}: ${chunk}. Let's take this step by step.`, {
+      rate: 0.75,
+      pitch: 1.0
+    });
+  }
+  
+  async speakConceptRelationship(concept1: string, relationship: string, concept2: string): Promise<void> {
+    await this.speak(`Let's connect these concepts: ${concept1} ${relationship} ${concept2}. Understanding this connection will help you see the bigger picture.`, {
+      rate: 0.8,
+      pitch: 1.05
+    });
   }
 
   async speakBreakReminder(): Promise<void> {
@@ -238,12 +276,3 @@ export const speakError = (error: string, style?: 'standard' | 'gentle' | 'encou
 export const speakBreakReminder = () => speechManager.speakBreakReminder();
 export const speakFocusComplete = (sessionType: string) => speechManager.speakFocusComplete(sessionType);
 export const speakProgress = (progress: number, total: number) => speechManager.speakProgress(progress, total);
-
-// Add new exports for learning pattern speech functions
-export const speakVisualConcept = (concept: string) => speechManager.speakVisualConcept(concept);
-export const speakAuditoryExplanation = (explanation: string) => speechManager.speakAuditoryExplanation(explanation);
-export const speakKinestheticPrompt = (action: string) => speechManager.speakKinestheticPrompt(action);
-export const speakInformationChunk = (chunk: string, chunkNumber: number, totalChunks: number) => 
-  speechManager.speakInformationChunk(chunk, chunkNumber, totalChunks);
-export const speakConceptRelationship = (concept1: string, relationship: string, concept2: string) => 
-  speechManager.speakConceptRelationship(concept1, relationship, concept2);

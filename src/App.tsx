@@ -4,6 +4,9 @@ import { RegressionGame } from './components/modules/RegressionGame';
 import { ClusteringGame } from './components/modules/ClusteringGame';
 import { NeuralNetworkSimulation } from './components/modules/NeuralNetworkSimulation';
 import { AIBuilder } from './components/modules/AIBuilder';
+import { LessonContent } from './components/modules/LessonContent';
+import { InteractiveAITrainer } from './components/modules/InteractiveAITrainer';
+import { ImageClassifier } from './components/modules/ImageClassifier';
 import AccessibilityPanel, { defaultAccessibilitySettings } from './components/AccessibilityPanel';
 import type { AccessibilitySettings } from './components/AccessibilityPanel';
 import { BadgeSystem } from './components/BadgeSystem';
@@ -23,7 +26,7 @@ import { adhdSettings, autismSettings, dyslexiaSettings } from './utils/accessib
 
 function App() {
   const { user, isAuthenticated, login, signup, updateProgress } = useAuth();
-  const [currentView, setCurrentView] = useState<'welcome' | 'modules' | 'classification' | 'regression' | 'clustering' | 'neural-network' | 'introduction' | 'ai-builder' | 'accessibility-demo'>('welcome');
+  const [currentView, setCurrentView] = useState<'welcome' | 'modules' | 'classification' | 'regression' | 'clustering' | 'neural-network' | 'introduction' | 'ai-builder' | 'accessibility-demo' | 'interactive-trainer' | 'image-classifier'>('welcome');
   const [completedModules, setCompletedModules] = useState<string[]>([]);
   const [scores, setScores] = useState<Record<string, number>>({});
   const [accessibilitySettings, setAccessibilitySettings] = useState<AccessibilitySettings>(defaultAccessibilitySettings);
@@ -244,6 +247,90 @@ function App() {
     );
   }
 
+  if (currentView === 'interactive-trainer') {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+        <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb', backgroundColor: 'white' }}>
+          <button 
+            onClick={() => setCurrentView('modules')}
+            style={{
+              color: '#4b5563',
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              padding: '0.5rem'
+            }}
+          >
+            ← Back to Modules
+          </button>
+        </div>
+        <InteractiveAITrainer 
+          onComplete={(score) => handleModuleComplete('interactive-trainer', score)} 
+          accessibilitySettings={accessibilitySettings}
+        />
+
+        {/* Authentication Modal */}
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          onLogin={login}
+          onSignup={signup}
+        />
+
+        {/* User Dashboard */}
+        <UserDashboard
+          isOpen={isUserDashboardOpen}
+          onClose={() => setIsUserDashboardOpen(false)}
+        />
+      </div>
+    );
+  }
+
+  if (currentView === 'image-classifier') {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+        <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb', backgroundColor: 'white' }}>
+          <button 
+            onClick={() => setCurrentView('modules')}
+            style={{
+              color: '#4b5563',
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              padding: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontWeight: '500'
+            }}
+          >
+            ← Back to Modules
+          </button>
+        </div>
+        <ImageClassifier 
+          onComplete={(score) => handleModuleComplete('image-classifier', score)} 
+          accessibilitySettings={accessibilitySettings}
+        />
+
+        {/* Authentication Modal */}
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          onLogin={login}
+          onSignup={signup}
+        />
+
+        {/* User Dashboard */}
+        <UserDashboard
+          isOpen={isUserDashboardOpen}
+          onClose={() => setIsUserDashboardOpen(false)}
+        />
+      </div>
+    );
+  }
+
   if (currentView === 'accessibility-demo') {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
@@ -285,8 +372,8 @@ function App() {
 
   if (currentView === 'introduction') {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', padding: '2rem' }}>
-        <div style={{ marginBottom: '2rem' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+        <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
           <button 
             onClick={() => setCurrentView('modules')}
             style={{
@@ -294,86 +381,22 @@ function App() {
               backgroundColor: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              fontSize: '1rem'
+              fontSize: '1rem',
+              padding: '0.5rem'
             }}
           >
             ← Back to Modules
           </button>
         </div>
         
-        <div style={{ maxWidth: '72rem', margin: '0 auto', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '3rem', fontWeight: '700', color: '#111827', marginBottom: '2rem' }}>
-            Welcome to AI! 🤖
-          </h1>
-          
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(20rem, 1fr))', 
-            gap: '2rem',
-            marginBottom: '3rem'
-          }}>
-            <div style={{
-              backgroundColor: 'white',
-              borderRadius: '1rem',
-              padding: '2rem',
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
-            }}>
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🧠</div>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#111827', marginBottom: '1rem' }}>
-                What is AI?
-              </h3>
-              <p style={{ color: '#4b5563', lineHeight: '1.6' }}>
-                AI helps computers learn patterns and make decisions, just like how you learn to recognize faces or predict what song you'll like.
-              </p>
-            </div>
-            
-            <div style={{
-              backgroundColor: 'white',
-              borderRadius: '1rem',
-              padding: '2rem',
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
-            }}>
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📚</div>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#111827', marginBottom: '1rem' }}>
-                How does it learn?
-              </h3>
-              <p style={{ color: '#4b5563', lineHeight: '1.6' }}>
-                By looking at lots of examples! Just like how you learned to read by seeing many words and sentences.
-              </p>
-            </div>
-          </div>
-          
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '1rem',
-            padding: '2rem',
-            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-            maxWidth: '600px',
-            margin: '0 auto'
-          }}>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#111827', marginBottom: '1rem' }}>
-              Ready to explore? 🚀
-            </h3>
-            <p style={{ color: '#4b5563', marginBottom: '2rem' }}>
-              AI is everywhere around us - from the recommendations you see on YouTube to the way your phone recognizes your voice. Let's discover how it works through fun activities!
-            </p>
-            <button 
-              onClick={() => setCurrentView('modules')}
-              style={{
-                backgroundColor: '#8b5cf6',
-                color: 'white',
-                fontWeight: '600',
-                padding: '0.75rem 2rem',
-                borderRadius: '0.5rem',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '1.1rem'
-              }}
-            >
-              Let's Start Learning!
-            </button>
-          </div>
-        </div>
+        <LessonContent 
+          lessonId="ai-fundamentals"
+          onComplete={() => {
+            handleModuleComplete('introduction', 100);
+            setCurrentView('modules');
+          }}
+          accessibilitySettings={accessibilitySettings}
+        />
 
         {/* Authentication Modal */}
         <AuthModal
@@ -1245,6 +1268,153 @@ function App() {
               }}
             >
               Start Building!
+            </button>
+          </div>
+
+          {/* Interactive AI Trainer Module */}
+          <div 
+            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '0.75rem',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              padding: '1.5rem',
+              transition: 'box-shadow 0.3s'
+            }}
+          >
+            <div 
+              className="w-16 h-16 bg-purple-500 rounded-lg flex items-center justify-center mb-4"
+              style={{
+                width: '4rem',
+                height: '4rem',
+                backgroundColor: '#a855f7',
+                borderRadius: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1rem'
+              }}
+            >
+              <span style={{ color: 'white', fontSize: '1.5rem' }}>🤖</span>
+            </div>
+            <h3 
+              className="text-xl font-semibold text-gray-900 mb-2"
+              style={{
+                fontSize: '1.25rem',
+                fontWeight: '600',
+                color: '#111827',
+                marginBottom: '0.5rem'
+              }}
+            >
+              Train Your Own AI ⭐ NEW!
+            </h3>
+            <p 
+              className="text-gray-600 mb-4"
+              style={{
+                color: '#4b5563',
+                marginBottom: '1rem'
+              }}
+            >
+              Add your own training data, train a real neural network, and test it with your inputs!
+            </p>
+            <button 
+              className="bg-purple-500 hover:bg-purple-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              onClick={() => setCurrentView('interactive-trainer')}
+              style={{
+                backgroundColor: '#a855f7',
+                color: 'white',
+                fontWeight: '500',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#9333ea';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#a855f7';
+              }}
+            >
+              Train AI Now!
+            </button>
+          </div>
+
+          {/* Image Classifier Module - NEW! */}
+          <div 
+            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '0.75rem',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              padding: '1.5rem',
+              transition: 'box-shadow 0.3s',
+              border: '3px solid #fbbf24'
+            }}
+          >
+            <div 
+              className="w-16 h-16 bg-yellow-500 rounded-lg flex items-center justify-center mb-4"
+              style={{
+                width: '4rem',
+                height: '4rem',
+                backgroundColor: '#fbbf24',
+                borderRadius: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1rem'
+              }}
+            >
+              <span style={{ color: 'white', fontSize: '1.5rem' }}>📸</span>
+            </div>
+            <h3 
+              className="text-xl font-semibold text-gray-900 mb-2"
+              style={{
+                fontSize: '1.25rem',
+                fontWeight: '600',
+                color: '#111827',
+                marginBottom: '0.5rem'
+              }}
+            >
+              Upload & Analyze Photos ✨ NEW!
+            </h3>
+            <p 
+              className="text-gray-600 mb-4"
+              style={{
+                color: '#4b5563',
+                marginBottom: '1rem',
+                fontSize: '0.95rem',
+                lineHeight: '1.6'
+              }}
+            >
+              Upload your own photos and let AI identify what's in them! Simple drag & drop interface perfect for everyone.
+            </p>
+            <button 
+              className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              onClick={() => setCurrentView('image-classifier')}
+              style={{
+                backgroundColor: '#fbbf24',
+                color: 'white',
+                fontWeight: '600',
+                padding: '0.75rem 1.25rem',
+                borderRadius: '0.5rem',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                fontSize: '0.95rem',
+                width: '100%'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#f59e0b';
+                e.currentTarget.style.transform = 'scale(1.02)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#fbbf24';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+            >
+              📸 Upload Photos!
             </button>
           </div>
 
