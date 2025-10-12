@@ -23,10 +23,12 @@ import { TimerControl } from './components/TimerControl';
 import { TaskBreakdown } from './components/TaskBreakdown';
 import { TaskSequencer } from './components/TaskSequencer';
 import { adhdSettings, autismSettings, dyslexiaSettings } from './utils/accessibilitySettings';
+import PlacementTest from './components/PlacementTest';
+import PracticeMode from './components/PracticeMode';
 
 function App() {
   const { user, isAuthenticated, login, signup, updateProgress } = useAuth();
-  const [currentView, setCurrentView] = useState<'welcome' | 'modules' | 'classification' | 'regression' | 'clustering' | 'neural-network' | 'introduction' | 'ai-builder' | 'accessibility-demo' | 'interactive-trainer' | 'image-classifier'>('welcome');
+  const [currentView, setCurrentView] = useState<'welcome' | 'modules' | 'classification' | 'regression' | 'clustering' | 'neural-network' | 'introduction' | 'ai-builder' | 'accessibility-demo' | 'interactive-trainer' | 'image-classifier' | 'placement' | 'practice'>('welcome');
   const [completedModules, setCompletedModules] = useState<string[]>([]);
   const [scores, setScores] = useState<Record<string, number>>({});
   const [accessibilitySettings, setAccessibilitySettings] = useState<AccessibilitySettings>(defaultAccessibilitySettings);
@@ -86,6 +88,27 @@ function App() {
   };
 
   // Handle different module views
+  if (currentView === 'placement') {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+        <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
+          <button onClick={() => setCurrentView('modules')} style={{ color: '#4b5563', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem', padding: '0.5rem' }}>← Back to Modules</button>
+        </div>
+        <PlacementTest onComplete={(score) => handleModuleComplete('placement', score)} />
+      </div>
+    );
+  }
+
+  if (currentView === 'practice') {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+        <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
+          <button onClick={() => setCurrentView('modules')} style={{ color: '#4b5563', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem', padding: '0.5rem' }}>← Back to Modules</button>
+        </div>
+        <PracticeMode onComplete={(score) => handleModuleComplete('practice', score)} />
+      </div>
+    );
+  }
   if (currentView === 'classification') {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
@@ -717,10 +740,53 @@ function App() {
                     <span>⭐</span>
                     <span>{user?.progress.xpToday || 0}/{user?.progress.dailyGoal || 50} XP</span>
                   </div>
+                  <div style={{
+                    backgroundColor: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    color: '#991b1b',
+                    padding: '6px 10px',
+                    borderRadius: '9999px',
+                    fontSize: '0.875rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }} title="Hearts">
+                    <span>❤️</span>
+                    <span>{user?.progress.hearts ?? 5}</span>
+                  </div>
                 </div>
               )}
               {isAuthenticated ? (
                 <>
+                  {/* Child Mode quick toggle */}
+                  <button
+                    onClick={() => {
+                      // child mode preset
+                      handleAccessibilitySettingsChange({
+                        ...accessibilitySettings,
+                        fontSize: 'large',
+                        reducedMotion: true,
+                        simplifiedUI: true,
+                        minimalMode: true,
+                        speechEnabled: true,
+                        speechInstructions: true,
+                        colorTheme: 'warm'
+                      });
+                    }}
+                    style={{
+                      color: '#065f46',
+                      backgroundColor: 'transparent',
+                      border: '1px solid #34d399',
+                      borderRadius: '0.5rem',
+                      padding: '0.5rem 0.75rem',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: 500
+                    }}
+                    title="Enable Child Mode"
+                  >
+                    👶 Child Mode
+                  </button>
                   <button 
                     onClick={() => setIsUserDashboardOpen(true)}
                     style={{
@@ -757,6 +823,34 @@ function App() {
                 </>
               ) : (
                 <>
+                  {/* Child Mode quick toggle */}
+                  <button
+                    onClick={() => {
+                      handleAccessibilitySettingsChange({
+                        ...accessibilitySettings,
+                        fontSize: 'large',
+                        reducedMotion: true,
+                        simplifiedUI: true,
+                        minimalMode: true,
+                        speechEnabled: true,
+                        speechInstructions: true,
+                        colorTheme: 'warm'
+                      });
+                    }}
+                    style={{
+                      color: '#065f46',
+                      backgroundColor: 'transparent',
+                      border: '1px solid #34d399',
+                      borderRadius: '0.5rem',
+                      padding: '0.5rem 0.75rem',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: 500
+                    }}
+                    title="Enable Child Mode"
+                  >
+                    👶 Child Mode
+                  </button>
                   <button 
                     onClick={() => setIsAuthModalOpen(true)}
                     style={{
@@ -824,6 +918,32 @@ function App() {
             gap: '1.5rem'
           }}
         >
+          {/* Placement Test */}
+          <div 
+            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
+            style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', padding: '1.5rem', transition: 'box-shadow 0.3s' }}
+          >
+            <div className="w-16 h-16 bg-indigo-500 rounded-lg flex items-center justify-center mb-4" style={{ width: '4rem', height: '4rem', backgroundColor: '#6366f1', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
+              <span style={{ color: 'white', fontSize: '1.5rem' }}>📘</span>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2" style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827', marginBottom: '0.5rem' }}>Placement Test</h3>
+            <p className="text-gray-600 mb-4" style={{ color: '#4b5563', marginBottom: '1rem' }}>Find your level and unlock the best path.</p>
+            <button className="bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg transition-colors" onClick={() => setCurrentView('placement')} style={{ backgroundColor: '#6366f1', color: 'white', fontWeight: 500, padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', cursor: 'pointer', transition: 'background-color 0.2s' }}>Start</button>
+          </div>
+
+          {/* Practice Mode */}
+          <div 
+            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
+            style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', padding: '1.5rem', transition: 'box-shadow 0.3s' }}
+          >
+            <div className="w-16 h-16 bg-green-500 rounded-lg flex items-center justify-center mb-4" style={{ width: '4rem', height: '4rem', backgroundColor: '#22c55e', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
+              <span style={{ color: 'white', fontSize: '1.5rem' }}>🧩</span>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2" style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827', marginBottom: '0.5rem' }}>Practice</h3>
+            <p className="text-gray-600 mb-4" style={{ color: '#4b5563', marginBottom: '1rem' }}>Review your weakest concepts and earn XP.</p>
+            <button className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors" onClick={() => setCurrentView('practice')} style={{ backgroundColor: '#22c55e', color: 'white', fontWeight: 500, padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', cursor: 'pointer', transition: 'background-color 0.2s' }}>Practice</button>
+          </div>
+
           <div 
             className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
             style={{

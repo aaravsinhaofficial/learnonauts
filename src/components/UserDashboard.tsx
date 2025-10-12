@@ -33,8 +33,18 @@ export function UserDashboard({ isOpen, onClose }: UserDashboardProps) {
     onClose();
   };
 
-  const completedModules = Object.values(user.progress.moduleProgress).filter(p => p.completed);
-  const totalModules = 4; // Total number of modules available
+  const ALL_MODULE_IDS = [
+    'introduction',
+    'classification',
+    'clustering',
+    'regression',
+    'neural-network',
+    'ai-builder',
+    'interactive-trainer',
+    'image-classifier'
+  ];
+  const completedModules = ALL_MODULE_IDS.filter(id => user.progress.moduleProgress[id]?.completed);
+  const totalModules = ALL_MODULE_IDS.length;
   const progressPercentage = (completedModules.length / totalModules) * 100;
 
   const formatTime = (minutes: number) => {
@@ -75,8 +85,10 @@ export function UserDashboard({ isOpen, onClose }: UserDashboardProps) {
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
             maxWidth: '56rem',
             width: '100%',
-            maxHeight: '90vh',
-            overflow: 'hidden'
+            maxHeight: '92vh',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column'
           }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -84,7 +96,10 @@ export function UserDashboard({ isOpen, onClose }: UserDashboardProps) {
           <div style={{
             background: 'linear-gradient(to right, #7c3aed, #3b82f6)',
             color: 'white',
-            padding: '1.5rem'
+            padding: '1.25rem 1.5rem',
+            position: 'sticky',
+            top: 0,
+            zIndex: 1
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -165,7 +180,7 @@ export function UserDashboard({ isOpen, onClose }: UserDashboardProps) {
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex border-b border-gray-200 bg-gray-50">
+          <div className="flex border-b border-gray-200 bg-gray-50 sticky top-0 z-10">
             {[
               { id: 'overview', label: 'Overview', icon: BarChart3 },
               { id: 'progress', label: 'Progress', icon: TrendingUp },
@@ -188,7 +203,7 @@ export function UserDashboard({ isOpen, onClose }: UserDashboardProps) {
           </div>
 
           {/* Content */}
-          <div className="p-6 overflow-y-auto max-h-[60vh]">
+          <div className="p-6 overflow-y-auto" style={{ flex: 1 }}>
             {/* Overview Tab */}
             {activeTab === 'overview' && (
               <div className="space-y-6">

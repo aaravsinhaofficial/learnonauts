@@ -13,6 +13,7 @@ interface AuthContextType {
   updateProgress: (moduleId: string, score: number, timeSpent: number) => Promise<void>;
   updatePreferences: (preferences: any) => Promise<void>;
   unlockAchievement: (achievementId: string) => Promise<void>;
+  adjustHearts: (delta: number) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -82,6 +83,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setUser(updatedUser);
   };
 
+  const adjustHearts = async (delta: number) => {
+    await authService.adjustHearts(delta);
+    const updatedUser = authService.getCurrentUser();
+    setUser(updatedUser);
+  };
+
   const value = {
     user,
     isAuthenticated: !!user,
@@ -92,6 +99,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     updateProgress,
     updatePreferences,
     unlockAchievement,
+    adjustHearts,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

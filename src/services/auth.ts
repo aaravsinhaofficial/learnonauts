@@ -500,6 +500,18 @@ class UserAuthService {
     this.saveToStorage();
   }
 
+  async adjustHearts(delta: number): Promise<void> {
+    const user = this.getCurrentUser();
+    if (!user) return;
+    const max = user.progress.maxHearts || 5;
+    const current = typeof user.progress.hearts === 'number' ? user.progress.hearts : max;
+    const next = Math.max(0, Math.min(max, current + delta));
+    user.progress.hearts = next;
+    this.users.set(user.email, user);
+    if (this.currentSession) this.currentSession.user = user;
+    this.saveToStorage();
+  }
+
   async unlockAchievement(achievementId: string): Promise<void> {
     const user = this.getCurrentUser();
     if (!user) return;

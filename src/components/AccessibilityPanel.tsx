@@ -493,6 +493,96 @@ const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
       case 'visual':
         return (
           <>
+            <div style={{ ...settingGroupStyle, marginTop: '-8px' }}>
+              <label style={settingLabelStyle}>Presets</label>
+              <p style={settingDescStyle}>Quickly apply recommended settings</p>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => {
+                    const childPreset: AccessibilitySettings = {
+                      ...localSettings,
+                      fontSize: 'large',
+                      reducedMotion: true,
+                      simplifiedUI: true,
+                      minimalMode: true,
+                      speechEnabled: true,
+                      speechInstructions: true,
+                      colorTheme: 'warm',
+                    };
+                    setLocalSettings(childPreset);
+                    onSettingsChange(childPreset);
+                  }}
+                  style={{ ...buttonStyle, borderColor: '#34d399', color: '#065f46' }}
+                  title="Larger text, simplified UI, audio on"
+                >
+                  👶 Child Mode
+                </button>
+                <button
+                  onClick={() => {
+                    const preset: AccessibilitySettings = {
+                      ...localSettings,
+                      breakReminders: true,
+                      visibleTimers: true,
+                      focusSessions: true,
+                      distractionReduction: true,
+                      simplifiedUI: true,
+                      cognitiveLoad: 'reduced',
+                      errorHandling: 'encouraging',
+                      feedbackStyle: 'both',
+                      interactionStyle: 'step-by-step'
+                    } as AccessibilitySettings;
+                    setLocalSettings(preset);
+                    onSettingsChange(preset);
+                  }}
+                  style={{ ...buttonStyle, borderColor: '#a78bfa', color: '#5b21b6' }}
+                >
+                  ⚡ ADHD
+                </button>
+                <button
+                  onClick={() => {
+                    const preset: AccessibilitySettings = {
+                      ...localSettings,
+                      colorTheme: 'autism-friendly',
+                      reducedMotion: true,
+                      sensoryBreaks: true,
+                      minimalMode: true,
+                      simplifiedUI: true,
+                      cognitiveLoad: 'minimal',
+                      errorHandling: 'gentle',
+                      feedbackStyle: 'visual',
+                      interactionStyle: 'guided'
+                    } as AccessibilitySettings;
+                    setLocalSettings(preset);
+                    onSettingsChange(preset);
+                  }}
+                  style={{ ...buttonStyle, borderColor: '#60a5fa', color: '#1d4ed8' }}
+                >
+                  🧩 Autism
+                </button>
+                <button
+                  onClick={() => {
+                    const preset: AccessibilitySettings = {
+                      ...localSettings,
+                      colorTheme: 'dyslexia-friendly',
+                      fontSize: 'large',
+                      letterSpacing: 'wide',
+                      lineHeight: 'relaxed',
+                      wordSpacing: 'wide',
+                      readingGuide: true,
+                      speechEnabled: true,
+                      speechInstructions: true,
+                      visualLearningMode: true,
+                      auditoryLearningMode: true,
+                    } as AccessibilitySettings;
+                    setLocalSettings(preset);
+                    onSettingsChange(preset);
+                  }}
+                  style={{ ...buttonStyle, borderColor: '#f59e0b', color: '#b45309' }}
+                >
+                  🔤 Dyslexia
+                </button>
+              </div>
+            </div>
             <div style={settingGroupStyle}>
               <label style={settingLabelStyle}>Font Size</label>
               <p style={settingDescStyle}>Choose text size for comfortable reading</p>

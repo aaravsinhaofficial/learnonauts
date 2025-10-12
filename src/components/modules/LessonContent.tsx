@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Brain, Lightbulb, Code, PlayCircle, CheckCircle, ChevronRight, ChevronLeft } from 'lucide-react';
 import type { AccessibilitySettings } from '../AccessibilityPanel';
+import { useAuth } from '../../context/AuthContext';
 import { speechManager } from '../../utils/speechSynthesis';
 
 interface LessonSection {
@@ -244,6 +245,7 @@ AI automation might change jobs, so we need to help people adapt.
 
 export function LessonContent({ lessonId, onComplete, accessibilitySettings }: LessonContentProps) {
   const lesson = lessons[lessonId] || lessons['ai-fundamentals'];
+  const { isAuthenticated, adjustHearts } = useAuth();
   const [currentSection, setCurrentSection] = useState(0);
   const [completedSections, setCompletedSections] = useState<Set<number>>(new Set());
   const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
@@ -256,6 +258,11 @@ export function LessonContent({ lessonId, onComplete, accessibilitySettings }: L
     setShowQuizResult(true);
     if (section.quiz && quizAnswer === section.quiz.correctAnswer) {
       setCompletedSections(prev => new Set([...prev, currentSection]));
+    } else if (section.quiz && quizAnswer !== null) {
+      // gently decrement a heart on incorrect submission for authenticated users
+      if (isAuthenticated) {
+        adjustHearts(-1).catch(() => {});
+      }
     }
   };
 

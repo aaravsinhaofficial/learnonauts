@@ -8,10 +8,14 @@ interface ProgressTrackerProps {
 }
 
 const modules = [
+  { id: 'introduction', name: 'AI Introduction', icon: '📘', color: 'indigo' },
   { id: 'classification', name: 'Sorting Things', icon: '🎯', color: 'blue' },
   { id: 'clustering', name: 'Pattern Detective', icon: '🔍', color: 'purple' },
   { id: 'regression', name: 'Prediction Explorer', icon: '📈', color: 'green' },
-  { id: 'neural-network', name: 'Neural Network Lab', icon: '⚡', color: 'red' }
+  { id: 'neural-network', name: 'Neural Network Lab', icon: '⚡', color: 'red' },
+  { id: 'ai-builder', name: 'AI Builder', icon: '🛠️', color: 'amber' },
+  { id: 'interactive-trainer', name: 'Interactive Trainer', icon: '🤝', color: 'teal' },
+  { id: 'image-classifier', name: 'Image Classifier', icon: '🖼️', color: 'rose' }
 ];
 
 export function ProgressTracker({ completedModules, scores, className = '' }: ProgressTrackerProps) {
