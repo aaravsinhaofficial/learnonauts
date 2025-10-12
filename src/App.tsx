@@ -686,6 +686,39 @@ function App() {
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              {/* Streak + XP (authenticated users) */}
+              {isAuthenticated && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginRight: '0.5rem' }}>
+                  <div style={{
+                    backgroundColor: '#fff7ed',
+                    border: '1px solid #fed7aa',
+                    color: '#9a3412',
+                    padding: '6px 10px',
+                    borderRadius: '9999px',
+                    fontSize: '0.875rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    <span>🔥</span>
+                    <span>Streak {user?.progress.currentStreak || 0}</span>
+                  </div>
+                  <div style={{
+                    backgroundColor: '#eef2ff',
+                    border: '1px solid #c7d2fe',
+                    color: '#3730a3',
+                    padding: '6px 10px',
+                    borderRadius: '9999px',
+                    fontSize: '0.875rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}>
+                    <span>⭐</span>
+                    <span>{user?.progress.xpToday || 0}/{user?.progress.dailyGoal || 50} XP</span>
+                  </div>
+                </div>
+              )}
               {isAuthenticated ? (
                 <>
                   <button 

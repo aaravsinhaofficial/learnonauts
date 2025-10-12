@@ -99,7 +99,13 @@ class UserAuthService {
               perfectScores: 0
             }
           },
-          overallScore: 91
+          overallScore: 91,
+          xp: 240,
+          xpToday: 30,
+          dailyGoal: 50,
+          lastXpReset: new Date(),
+          hearts: 5,
+          maxHearts: 5
         },
         achievements: [
           { id: 'first-steps', unlockedAt: new Date('2025-01-15') },
@@ -128,6 +134,13 @@ class UserAuthService {
             progress: {
               ...userData.progress,
               lastActiveDate: new Date(userData.progress.lastActiveDate),
+              // Backwards-compatible defaults for new fields
+              xp: typeof userData.progress.xp === 'number' ? userData.progress.xp : 0,
+              xpToday: typeof userData.progress.xpToday === 'number' ? userData.progress.xpToday : 0,
+              dailyGoal: typeof userData.progress.dailyGoal === 'number' ? userData.progress.dailyGoal : 50,
+              lastXpReset: userData.progress.lastXpReset ? new Date(userData.progress.lastXpReset) : new Date(),
+              hearts: typeof userData.progress.hearts === 'number' ? userData.progress.hearts : 5,
+              maxHearts: typeof userData.progress.maxHearts === 'number' ? userData.progress.maxHearts : 5,
               moduleProgress: Object.fromEntries(
                 Object.entries(userData.progress.moduleProgress || {}).map(([moduleId, progress]: [string, any]) => [
                   moduleId,
@@ -289,7 +302,13 @@ class UserAuthService {
           longestStreak: 0,
           lastActiveDate: new Date(),
           moduleProgress: {},
-          overallScore: 0
+          overallScore: 0,
+          xp: 0,
+          xpToday: 0,
+          dailyGoal: 50,
+          lastXpReset: new Date(),
+          hearts: 5,
+          maxHearts: 5
         },
         achievements: []
       };
@@ -363,6 +382,22 @@ class UserAuthService {
 
     const now = new Date();
     
+    // Reset daily XP if needed (based on day change)
+    const dayStart = (d: Date) => {
+      const x = new Date(d);
+      x.setHours(0, 0, 0, 0);
+      return x.getTime();
+    };
+
+    if (!user.progress.lastXpReset) {
+      user.progress.lastXpReset = now;
+    }
+
+    if (dayStart(now) !== dayStart(new Date(user.progress.lastXpReset))) {
+      user.progress.xpToday = 0;
+      user.progress.lastXpReset = now;
+    }
+
     // Update or create module progress
     if (!user.progress.moduleProgress[moduleId]) {
       user.progress.moduleProgress[moduleId] = {
@@ -415,6 +450,16 @@ class UserAuthService {
         completedModules.reduce((sum, p) => sum + p.bestScore, 0) / completedModules.length
       );
     }
+
+    // Award XP (Duolingo-like): base + score bonus + first-time bonus
+    const firstTimeComplete = score >= 70 && moduleProgress.firstCompletedAt?.getTime() === now.getTime();
+    const baseXp = 10;
+    const scoreXp = Math.round(score / 10); // up to +10
+    const firstTimeXp = firstTimeComplete ? 20 : 0;
+    const gainedXp = baseXp + scoreXp + firstTimeXp;
+
+    user.progress.xp = (user.progress.xp || 0) + gainedXp;
+    user.progress.xpToday = (user.progress.xpToday || 0) + gainedXp;
 
     // Update streak
     const yesterday = new Date();

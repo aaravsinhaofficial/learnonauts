@@ -64,6 +64,13 @@ export interface UserProgress {
   lastActiveDate: Date;
   moduleProgress: Record<string, ModuleProgress>;
   overallScore: number;
+  // Gamification
+  xp?: number;              // total XP earned
+  xpToday?: number;         // XP earned today
+  dailyGoal?: number;       // target XP per day
+  lastXpReset?: Date;       // when xpToday last reset
+  hearts?: number;          // lives/tries remaining (optional visual)
+  maxHearts?: number;       // maximum hearts
 }
 
 export interface ModuleProgress {

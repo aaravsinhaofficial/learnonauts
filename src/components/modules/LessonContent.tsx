@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Brain, Lightbulb, Code, PlayCircle, CheckCircle, ChevronRight, ChevronLeft } from 'lucide-react';
 import type { AccessibilitySettings } from '../AccessibilityPanel';
+import { speechManager } from '../../utils/speechSynthesis';
 
 interface LessonSection {
   id: string;
@@ -326,15 +327,65 @@ export function LessonContent({ lessonId, onComplete, accessibilitySettings }: L
           marginBottom: '2rem'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-          <span style={{ fontSize: '3rem' }}>{lesson.icon}</span>
-          <div>
-            <h1 style={{ fontSize: '2rem', fontWeight: '700', color: '#111827', margin: 0 }}>
-              {section.title}
-            </h1>
-            <p style={{ color: '#6b7280', margin: '0.25rem 0 0 0' }}>
-              {lesson.title}
-            </p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <span style={{ fontSize: '3rem' }}>{lesson.icon}</span>
+            <div>
+              <h1 style={{ fontSize: '2rem', fontWeight: '700', color: '#111827', margin: 0 }}>
+                {section.title}
+              </h1>
+              <p style={{ color: '#6b7280', margin: '0.25rem 0 0 0' }}>
+                {lesson.title}
+              </p>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <button
+              onClick={() => {
+                const parts: string[] = [];
+                parts.push(section.title);
+                if (section.content) parts.push(section.content.replace(/\*\*|\•/g, ''));
+                if (section.quiz) {
+                  parts.push('Question: ' + section.quiz.question);
+                  section.quiz.options.forEach((opt, i) => parts.push(`Option ${i + 1}: ${opt}`));
+                }
+                const text = parts.join('. ');
+                try {
+                  speechManager.speak(text);
+                } catch (e) {
+                  console.warn('Speech error', e);
+                }
+              }}
+              style={{
+                backgroundColor: '#f3f4f6',
+                color: '#374151',
+                border: '1px solid #e5e7eb',
+                borderRadius: '0.5rem',
+                padding: '0.5rem 0.75rem',
+                cursor: 'pointer',
+                fontWeight: 600
+              }}
+              aria-label="Read aloud this section"
+              title="Read Aloud"
+            >
+              🔊 Read Aloud
+            </button>
+            <button
+              onClick={() => speechManager.cancel()}
+              style={{
+                backgroundColor: 'white',
+                color: '#6b7280',
+                border: '1px solid #e5e7eb',
+                borderRadius: '0.5rem',
+                padding: '0.5rem 0.75rem',
+                cursor: 'pointer',
+                fontWeight: 500
+              }}
+              aria-label="Stop reading"
+              title="Stop"
+            >
+              ⏹ Stop
+            </button>
           </div>
         </div>
       </motion.div>
