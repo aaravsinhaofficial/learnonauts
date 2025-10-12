@@ -39,8 +39,7 @@ export function UserDashboard({ isOpen, onClose }: UserDashboardProps) {
     'clustering',
     'regression',
     'neural-network',
-    'ai-builder',
-    'interactive-trainer',
+    'training-lab',
     'image-classifier'
   ];
   const completedModules = ALL_MODULE_IDS.filter(id => user.progress.moduleProgress[id]?.completed);

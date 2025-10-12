@@ -13,8 +13,7 @@ const modules = [
   { id: 'clustering', name: 'Pattern Detective', icon: '🔍', color: 'purple' },
   { id: 'regression', name: 'Prediction Explorer', icon: '📈', color: 'green' },
   { id: 'neural-network', name: 'Neural Network Lab', icon: '⚡', color: 'red' },
-  { id: 'ai-builder', name: 'AI Builder', icon: '🛠️', color: 'amber' },
-  { id: 'interactive-trainer', name: 'Interactive Trainer', icon: '🤝', color: 'teal' },
+  { id: 'training-lab', name: 'AI Training Lab', icon: '🤖', color: 'teal' },
   { id: 'image-classifier', name: 'Image Classifier', icon: '🖼️', color: 'rose' }
 ];
 

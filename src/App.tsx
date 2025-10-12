@@ -3,9 +3,9 @@ import { ClassificationGame } from './components/modules/ClassificationGame';
 import { RegressionGame } from './components/modules/RegressionGame';
 import { ClusteringGame } from './components/modules/ClusteringGame';
 import { NeuralNetworkSimulation } from './components/modules/NeuralNetworkSimulation';
-import { AIBuilder } from './components/modules/AIBuilder';
+// import { AIBuilder } from './components/modules/AIBuilder';
 import { LessonContent } from './components/modules/LessonContent';
-import { InteractiveAITrainer } from './components/modules/InteractiveAITrainer';
+// import { InteractiveAITrainer } from './components/modules/InteractiveAITrainer';
 import { ImageClassifier } from './components/modules/ImageClassifier';
 import AccessibilityPanel, { defaultAccessibilitySettings } from './components/AccessibilityPanel';
 import type { AccessibilitySettings } from './components/AccessibilityPanel';
@@ -28,7 +28,7 @@ import PracticeMode from './components/PracticeMode';
 
 function App() {
   const { user, isAuthenticated, login, signup, updateProgress } = useAuth();
-  const [currentView, setCurrentView] = useState<'welcome' | 'modules' | 'classification' | 'regression' | 'clustering' | 'neural-network' | 'introduction' | 'ai-builder' | 'accessibility-demo' | 'interactive-trainer' | 'image-classifier' | 'placement' | 'practice'>('welcome');
+  const [currentView, setCurrentView] = useState<'welcome' | 'modules' | 'classification' | 'regression' | 'clustering' | 'neural-network' | 'introduction' | 'training-lab' | 'accessibility-demo' | 'image-classifier' | 'placement' | 'practice'>('welcome');
   const [completedModules, setCompletedModules] = useState<string[]>([]);
   const [scores, setScores] = useState<Record<string, number>>({});
   const [accessibilitySettings, setAccessibilitySettings] = useState<AccessibilitySettings>(defaultAccessibilitySettings);
@@ -230,68 +230,18 @@ function App() {
     );
   }
 
-  if (currentView === 'ai-builder') {
-    return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
-        <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
-          <button 
-            onClick={() => setCurrentView('modules')}
-            style={{
-              color: '#4b5563',
-              backgroundColor: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              padding: '0.5rem'
-            }}
-          >
-            ← Back to Modules
-          </button>
-        </div>
-        <AIBuilder 
-          onComplete={(score) => handleModuleComplete('ai-builder', score)} 
-          accessibilitySettings={accessibilitySettings}
-        />
-
-        {/* Authentication Modal */}
-        <AuthModal
-          isOpen={isAuthModalOpen}
-          onClose={() => setIsAuthModalOpen(false)}
-          onLogin={login}
-          onSignup={signup}
-        />
-
-        {/* User Dashboard */}
-        <UserDashboard
-          isOpen={isUserDashboardOpen}
-          onClose={() => setIsUserDashboardOpen(false)}
-        />
-      </div>
-    );
-  }
-
-  if (currentView === 'interactive-trainer') {
+  if (currentView === 'training-lab') {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
         <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb', backgroundColor: 'white' }}>
           <button 
             onClick={() => setCurrentView('modules')}
-            style={{
-              color: '#4b5563',
-              backgroundColor: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              padding: '0.5rem'
-            }}
+            style={{ color: '#4b5563', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem', padding: '0.5rem' }}
           >
             ← Back to Modules
           </button>
         </div>
-        <InteractiveAITrainer 
-          onComplete={(score) => handleModuleComplete('interactive-trainer', score)} 
-          accessibilitySettings={accessibilitySettings}
-        />
+        <AITrainingLab onComplete={(score) => handleModuleComplete('training-lab', score)} />
 
         {/* Authentication Modal */}
         <AuthModal
@@ -1355,143 +1305,17 @@ function App() {
             </button>
           </div>
 
+          {/* AI Training Lab (Consolidated) */}
           <div 
             className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
-            style={{
-              backgroundColor: 'white',
-              borderRadius: '0.75rem',
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-              padding: '1.5rem',
-              transition: 'box-shadow 0.3s'
-            }}
+            style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', padding: '1.5rem', transition: 'box-shadow 0.3s' }}
           >
-            <div 
-              className="w-16 h-16 bg-yellow-500 rounded-lg flex items-center justify-center mb-4"
-              style={{
-                width: '4rem',
-                height: '4rem',
-                backgroundColor: '#f59e0b',
-                borderRadius: '0.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '1rem'
-              }}
-            >
-              <span style={{ color: 'white', fontSize: '1.5rem' }}>🔮</span>
-            </div>
-            <h3 
-              className="text-xl font-semibold text-gray-900 mb-2"
-              style={{
-                fontSize: '1.25rem',
-                fontWeight: '600',
-                color: '#111827',
-                marginBottom: '0.5rem'
-              }}
-            >
-              Create Your Own AI
-            </h3>
-            <p 
-              className="text-gray-600 mb-4"
-              style={{
-                color: '#4b5563',
-                marginBottom: '1rem'
-              }}
-            >
-              Build your own mini AI models and watch them come to life!
-            </p>
-            <button 
-              className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-              onClick={() => setCurrentView('ai-builder')}
-              style={{
-                backgroundColor: '#f59e0b',
-                color: 'white',
-                fontWeight: '500',
-                padding: '0.5rem 1rem',
-                borderRadius: '0.5rem',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#d97706';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#f59e0b';
-              }}
-            >
-              Start Building!
-            </button>
-          </div>
-
-          {/* Interactive AI Trainer Module */}
-          <div 
-            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
-            style={{
-              backgroundColor: 'white',
-              borderRadius: '0.75rem',
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-              padding: '1.5rem',
-              transition: 'box-shadow 0.3s'
-            }}
-          >
-            <div 
-              className="w-16 h-16 bg-purple-500 rounded-lg flex items-center justify-center mb-4"
-              style={{
-                width: '4rem',
-                height: '4rem',
-                backgroundColor: '#a855f7',
-                borderRadius: '0.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '1rem'
-              }}
-            >
+            <div className="w-16 h-16 bg-teal-500 rounded-lg flex items-center justify-center mb-4" style={{ width: '4rem', height: '4rem', backgroundColor: '#14b8a6', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
               <span style={{ color: 'white', fontSize: '1.5rem' }}>🤖</span>
             </div>
-            <h3 
-              className="text-xl font-semibold text-gray-900 mb-2"
-              style={{
-                fontSize: '1.25rem',
-                fontWeight: '600',
-                color: '#111827',
-                marginBottom: '0.5rem'
-              }}
-            >
-              Train Your Own AI ⭐ NEW!
-            </h3>
-            <p 
-              className="text-gray-600 mb-4"
-              style={{
-                color: '#4b5563',
-                marginBottom: '1rem'
-              }}
-            >
-              Add your own training data, train a real neural network, and test it with your inputs!
-            </p>
-            <button 
-              className="bg-purple-500 hover:bg-purple-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-              onClick={() => setCurrentView('interactive-trainer')}
-              style={{
-                backgroundColor: '#a855f7',
-                color: 'white',
-                fontWeight: '500',
-                padding: '0.5rem 1rem',
-                borderRadius: '0.5rem',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#9333ea';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#a855f7';
-              }}
-            >
-              Train AI Now!
-            </button>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2" style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827', marginBottom: '0.5rem' }}>AI Training Lab</h3>
+            <p className="text-gray-600 mb-4" style={{ color: '#4b5563', marginBottom: '1rem' }}>Auto-train on built-in data or your own. See learning live!</p>
+            <button className="bg-teal-500 hover:bg-teal-600 text-white font-medium py-2 px-4 rounded-lg transition-colors" onClick={() => setCurrentView('training-lab')} style={{ backgroundColor: '#14b8a6', color: 'white', fontWeight: 500, padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', cursor: 'pointer', transition: 'background-color 0.2s' }}>Open Lab</button>
           </div>
 
           {/* Image Classifier Module - NEW! */}
@@ -1703,3 +1527,4 @@ function App() {
 }
 
 export default App;
+import { AITrainingLab } from './components/modules/AITrainingLab';
