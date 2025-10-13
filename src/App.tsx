@@ -37,6 +37,58 @@ function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isUserDashboardOpen, setIsUserDashboardOpen] = useState(false);
 
+  // Helper function to get contextual information for chatbot
+  const getPageContext = (): { page: string; context: string } => {
+    const contexts: Record<typeof currentView, { page: string; context: string }> = {
+      welcome: {
+        page: 'Welcome Screen',
+        context: 'The user is on the welcome page where they can start their AI learning journey. They can click "Start Learning" to begin exploring AI concepts.'
+      },
+      modules: {
+        page: 'Module Selection Dashboard',
+        context: 'The user is viewing the main dashboard with all available learning modules: Placement Test, What is AI (Introduction), Sorting Things (Classification), Predicting Numbers (Regression), Pattern Detective (Clustering), Brain Networks (Neural Networks), AI Training Lab, and Practice Mode. They can select any module to start learning.'
+      },
+      classification: {
+        page: 'Classification Game',
+        context: 'The user is learning about classification - how AI sorts and categorizes things into groups (like cats vs dogs, spam vs not spam). This module teaches how computers assign labels to data.'
+      },
+      regression: {
+        page: 'Regression Game',
+        context: 'The user is learning about regression - how AI predicts numbers and continuous values (like predicting house prices or temperatures). This module teaches how AI makes numerical predictions.'
+      },
+      clustering: {
+        page: 'Clustering Game',
+        context: 'The user is learning about clustering - how AI finds hidden patterns and groups similar items together without being told the categories first. This is unsupervised learning where AI discovers patterns on its own.'
+      },
+      'neural-network': {
+        page: 'Neural Network Simulation',
+        context: 'The user is exploring neural networks - the brain-inspired architecture behind modern AI. They are learning about neurons, layers, weights, and how neural networks learn from data.'
+      },
+      introduction: {
+        page: 'What is AI? (Introduction)',
+        context: 'The user is learning the fundamentals of artificial intelligence - what AI is, how it works, and why it matters. This is an introductory lesson covering basic AI concepts.'
+      },
+      'training-lab': {
+        page: 'AI Training Lab',
+        context: 'The user is in the hands-on AI Training Lab where they can train their own AI models using built-in datasets or their own images. They can see the AI learning process happen in real-time and experiment with different training approaches.'
+      },
+      'accessibility-demo': {
+        page: 'Accessibility Features Demo',
+        context: 'The user is exploring the accessibility and neurodivergent-friendly features of Learnonauts, including speech synthesis, visual customization, break reminders, task sequencing, and learning pattern support.'
+      },
+      placement: {
+        page: 'Placement Test',
+        context: 'The user is taking a placement test to assess their current knowledge of AI concepts. This helps personalize their learning journey by determining what they already know.'
+      },
+      practice: {
+        page: 'Practice Mode',
+        context: 'The user is in practice mode where they can review and reinforce their AI knowledge through exercises and challenges.'
+      }
+    };
+    
+    return contexts[currentView] || { page: 'Learnonauts', context: 'The user is exploring the Learnonauts AI learning platform.' };
+  };
+
   // Update speech manager when accessibility settings change
   const handleAccessibilitySettingsChange = (newSettings: AccessibilitySettings) => {
     setAccessibilitySettings(newSettings);
@@ -96,7 +148,11 @@ function App() {
           <button onClick={() => setCurrentView('modules')} style={{ color: '#4b5563', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem', padding: '0.5rem' }}>← Back to Modules</button>
         </div>
         <PlacementTest onComplete={(score) => handleModuleComplete('placement', score)} />
-        <ChatbotFab accessibility={accessibilitySettings} />
+        <ChatbotFab 
+          accessibility={accessibilitySettings} 
+          currentPage={getPageContext().page}
+          pageContext={getPageContext().context}
+        />
       </div>
     );
   }
@@ -108,7 +164,11 @@ function App() {
           <button onClick={() => setCurrentView('modules')} style={{ color: '#4b5563', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem', padding: '0.5rem' }}>← Back to Modules</button>
         </div>
         <PracticeMode onComplete={(score) => handleModuleComplete('practice', score)} />
-        <ChatbotFab accessibility={accessibilitySettings} />
+        <ChatbotFab 
+          accessibility={accessibilitySettings} 
+          currentPage={getPageContext().page}
+          pageContext={getPageContext().context}
+        />
       </div>
     );
   }
@@ -134,7 +194,11 @@ function App() {
           onComplete={(score) => handleModuleComplete('classification', score)} 
           accessibilitySettings={accessibilitySettings}
         />
-        <ChatbotFab accessibility={accessibilitySettings} />
+        <ChatbotFab 
+          accessibility={accessibilitySettings} 
+          currentPage={getPageContext().page}
+          pageContext={getPageContext().context}
+        />
 
         {/* Authentication Modal */}
         <AuthModal
@@ -176,7 +240,11 @@ function App() {
           onComplete={(score) => handleModuleComplete('clustering', score)} 
           accessibilitySettings={accessibilitySettings}
         />
-        <ChatbotFab accessibility={accessibilitySettings} />
+        <ChatbotFab 
+          accessibility={accessibilitySettings} 
+          currentPage={getPageContext().page}
+          pageContext={getPageContext().context}
+        />
 
         {/* Authentication Modal */}
         <AuthModal
@@ -217,7 +285,11 @@ function App() {
           onComplete={(score) => handleModuleComplete('neural-network', score)} 
           accessibilitySettings={accessibilitySettings}
         />
-        <ChatbotFab accessibility={accessibilitySettings} />
+        <ChatbotFab 
+          accessibility={accessibilitySettings} 
+          currentPage={getPageContext().page}
+          pageContext={getPageContext().context}
+        />
 
         {/* Authentication Modal */}
         <AuthModal
@@ -248,7 +320,11 @@ function App() {
           </button>
         </div>
         <AITrainingLab onComplete={(score) => handleModuleComplete('training-lab', score)} />
-        <ChatbotFab accessibility={accessibilitySettings} />
+        <ChatbotFab 
+          accessibility={accessibilitySettings} 
+          currentPage={getPageContext().page}
+          pageContext={getPageContext().context}
+        />
 
         {/* Authentication Modal */}
         <AuthModal
@@ -289,7 +365,11 @@ function App() {
         <AccessibilityDemo 
           settings={accessibilitySettings}
         />
-        <ChatbotFab accessibility={accessibilitySettings} />
+        <ChatbotFab 
+          accessibility={accessibilitySettings} 
+          currentPage={getPageContext().page}
+          pageContext={getPageContext().context}
+        />
 
         {/* Authentication Modal */}
         <AuthModal
@@ -335,7 +415,11 @@ function App() {
           }}
           accessibilitySettings={accessibilitySettings}
         />
-        <ChatbotFab accessibility={accessibilitySettings} />
+        <ChatbotFab 
+          accessibility={accessibilitySettings} 
+          currentPage={getPageContext().page}
+          pageContext={getPageContext().context}
+        />
 
         {/* Authentication Modal */}
         <AuthModal
@@ -375,6 +459,11 @@ function App() {
         <RegressionGame 
           onComplete={(score) => handleModuleComplete('regression', score)} 
           accessibilitySettings={accessibilitySettings}
+        />
+        <ChatbotFab 
+          accessibility={accessibilitySettings} 
+          currentPage={getPageContext().page}
+          pageContext={getPageContext().context}
         />
 
         {/* Authentication Modal */}

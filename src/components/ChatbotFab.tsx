@@ -8,9 +8,11 @@ interface ChatbotFabProps {
     speechSpeed?: number;
     speechVolume?: number;
   };
+  currentPage?: string;
+  pageContext?: string;
 }
 
-export function ChatbotFab({ accessibility }: ChatbotFabProps) {
+export function ChatbotFab({ accessibility, currentPage, pageContext }: ChatbotFabProps) {
   const [open, setOpen] = useState<boolean>(() => {
     try { return !!JSON.parse(localStorage.getItem('chatbot_open') || 'false'); } catch { return false; }
   });
@@ -52,7 +54,22 @@ export function ChatbotFab({ accessibility }: ChatbotFabProps) {
     setMessages(prev => [...prev, { role: 'user', text: content }]);
     setInput('');
     try {
-      const res = await geminiAI.sendMessage(content);
+      // Build contextual message with app and page information
+      const appContext = `You are an AI learning assistant for Learnonauts, an educational platform teaching kids about artificial intelligence through interactive games and activities.
+
+App Overview:
+- Learnonauts helps children learn AI concepts like classification, regression, clustering, and neural networks
+- Features include interactive games, placement tests, practice modes, and hands-on AI training labs
+- The platform is designed to be accessible and neurodivergent-friendly with features like speech synthesis, break reminders, and customizable UI
+
+Current Page: ${currentPage || 'Main Dashboard'}
+${pageContext ? `Page Context: ${pageContext}` : ''}
+
+User Question: ${content}
+
+Please provide a helpful, kid-friendly response that relates to their current activity and the Learnonauts platform.`;
+
+      const res = await geminiAI.sendMessage(appContext);
       const reply = res.text || 'I am here to help!';
       setMessages(prev => [...prev, { role: 'assistant', text: reply }]);
       speakIfOn(reply);
