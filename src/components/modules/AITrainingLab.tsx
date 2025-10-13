@@ -23,7 +23,11 @@ type Mode = 'numeric' | 'images';
 type UserImage = { id: string; url: string; label?: Label; vector?: Float32Array; predicted?: Label; confidence?: number };
 
 export function AITrainingLab({ onComplete }: AITrainingLabProps) {
+  const base = (import.meta as any).env?.BASE_URL || '/';
   const [mode, setMode] = useState<Mode>('images');
+  const [wizardStep, setWizardStep] = useState<1 | 2 | 3>(1);
+  const [voiceHints, setVoiceHints] = useState(false);
+  const [oceanBg, setOceanBg] = useState(false);
   const [datasetKind, setDatasetKind] = useState<DatasetKind>('ocean');
   const [points, setPoints] = useState<Point[]>([]);
   const [images, setImages] = useState<UserImage[]>([]);
@@ -246,6 +250,35 @@ export function AITrainingLab({ onComplete }: AITrainingLabProps) {
     setImages(prev => [...prev, ...newItems]);
   };
 
+  const loadSamples = async () => {
+    try {
+      const loadFrom = async (url: string) => {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('not found');
+        return res.json();
+      };
+      let list: string[] | null = null;
+      try { list = await loadFrom(base + 'samples/ocean/manifest.json'); } catch {}
+      if (!list) { try { list = await loadFrom(base + 'samples/manifest.json'); } catch {} }
+      if (list && Array.isArray(list) && list.length > 0) {
+        const now = Date.now();
+        const items: UserImage[] = list.map((p, i) => {
+          const u = p.startsWith('http') ? p : (p.startsWith('/') ? base.replace(/\/$/, '') + p : base + p);
+          const lower = p.toLowerCase();
+          let label: Label | undefined = undefined;
+          if (lower.includes('fish')) label = 1; // fish
+          if (lower.includes('garbage') || lower.includes('trash') || lower.includes('waste')) label = 0; // garbage
+          return { id: `sample-${now}-${i}`, url: u, label };
+        });
+        setImages(prev => [...prev, ...items]);
+      } else {
+        setImages(prev => [...prev, { id: `sample-${Date.now()}`, url: base + 'Images/ocean.webp' }]);
+      }
+    } catch (e) {
+      setImages(prev => [...prev, { id: `sample-${Date.now()}`, url: base + 'Images/ocean.webp' }]);
+    }
+  };
+
   const extractVector = async (url: string, size = 16): Promise<Float32Array> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -347,26 +380,61 @@ export function AITrainingLab({ onComplete }: AITrainingLabProps) {
     onComplete(score);
   };
 
+  const labeledCount = images.filter(i => i.label !== undefined).length;
+
+  const speak = async (text: string) => {
+    if (!voiceHints) return;
+    try {
+      const { speechManager } = await import('../../utils/speechSynthesis');
+      speechManager.speak(text);
+    } catch {}
+  };
+
   return (
-    <div style={{ padding: '1rem', maxWidth: 1100, margin: '0 auto' }}>
-      {/* Mode toggle */}
+    <div style={{ padding: '1rem', maxWidth: 1100, margin: '0 auto', position: 'relative' }}>
+      {oceanBg && (
+        <div aria-hidden style={{ position: 'absolute', inset: 0, backgroundImage: `url(${base}Images/ocean.webp)`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.15, zIndex: 0, animation: 'float 14s ease-in-out infinite', pointerEvents: 'none', borderRadius: 12 }} />
+      )}
+      {/* Mode + Quick toggles */}
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
         <button onClick={() => setMode('numeric')} style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: mode === 'numeric' ? '2px solid #6366f1' : '1px solid #d1d5db', background: mode === 'numeric' ? '#eef2ff' : 'white', cursor: 'pointer' }}>Numbers</button>
         <button onClick={() => setMode('images')} style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: mode === 'images' ? '2px solid #14b8a6' : '1px solid #d1d5db', background: mode === 'images' ? '#ecfeff' : 'white', cursor: 'pointer' }}>Images</button>
+        <button onClick={() => setOceanBg(v => !v)} style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px solid #d1d5db', background: oceanBg ? '#14b8a6' : 'white', color: oceanBg ? 'white' : '#111827', cursor: 'pointer' }}>🌊 Ocean Background</button>
+        <button onClick={() => setVoiceHints(v => !v)} style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px solid #d1d5db', background: voiceHints ? '#6366f1' : 'white', color: voiceHints ? 'white' : '#111827', cursor: 'pointer' }}>🔊 Voice Hints</button>
       </div>
 
       {mode === 'images' ? (
         <>
+          {/* Wizard */}
+          <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 12, padding: 12, marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontWeight: 700, color: '#075985' }}>Wizard:</span>
+              <span style={{ color: '#0c4a6e' }}>{wizardStep === 1 ? 'Step 1 of 3: Pick images' : wizardStep === 2 ? 'Step 2 of 3: Label 5' : 'Step 3 of 3: Auto‑classify'}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {wizardStep === 1 && (
+                <button onClick={() => { setWizardStep(2); speak('Great! Now tap Fish or Garbage on five pictures.'); }} disabled={images.length < 5} style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px solid #0ea5e9', background: images.length < 5 ? '#e5e7eb' : '#0ea5e9', color: 'white', cursor: images.length < 5 ? 'not-allowed' : 'pointer' }}>Next</button>
+              )}
+              {wizardStep === 2 && (
+                <button onClick={() => { setWizardStep(3); speak('Awesome! Press Auto Classify to let AI help.'); }} disabled={labeledCount < 5} style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px solid #0ea5e9', background: labeledCount < 5 ? '#e5e7eb' : '#0ea5e9', color: 'white', cursor: labeledCount < 5 ? 'not-allowed' : 'pointer' }}>Next</button>
+              )}
+              {wizardStep === 3 && (
+                <button onClick={() => { classifyAll(); speak('Classifying all images now.'); }} style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px solid #0ea5e9', background: '#0ea5e9', color: 'white', cursor: 'pointer' }}>Auto‑classify</button>
+              )}
+            </div>
+          </div>
+
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', gap: '0.75rem', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <input type="file" multiple accept="image/*" onChange={(e) => readFiles(e.target.files)} aria-label="Upload images" />
               <button onClick={classifyAll} style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px solid #d1d5db', background: 'white', cursor: 'pointer' }}>Auto Classify Unlabeled</button>
               <button onClick={finishImages} style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px solid #d1d5db', background: 'white', cursor: 'pointer' }}>Finish</button>
+              <button onClick={() => { loadSamples(); speak('Loaded sample ocean images.'); }} style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px solid #d1d5db', background: 'white', cursor: 'pointer' }}>Load Sample Images</button>
             </div>
             <div style={{ color: '#6b7280', fontSize: 14 }}>Tip: Label a few examples (“Fish” and “Garbage”) to teach the model.</div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.75rem', alignItems: 'start' }}>
+          <div style={{ position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.75rem', alignItems: 'start' }}>
             {images.map(img => (
               <div key={img.id} style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
                 <div style={{ position: 'relative', width: '100%', paddingBottom: '70%', overflow: 'hidden' }}>
@@ -395,6 +463,7 @@ export function AITrainingLab({ onComplete }: AITrainingLabProps) {
           </div>
 
           <canvas ref={hiddenCanvasRef} width={16} height={16} style={{ display: 'none' }} />
+          <style>{`@keyframes float { 0%{transform:translateY(0)} 50%{transform:translateY(-6px)} 100%{transform:translateY(0)} }`}</style>
         </>
       ) : (
         <>

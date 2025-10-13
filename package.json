@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/generate-sample-manifest.mjs",
     "build": "tsc -b && vite build && node scripts/create-nojekyll.js",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -23,7 +24,9 @@
     "react": "^19.1.0",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^7.7.0"
+    "react-router-dom": "^7.7.0",
+    "@tensorflow-models/mobilenet": "^2.1.0",
+    "@tensorflow/tfjs": "^4.20.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",

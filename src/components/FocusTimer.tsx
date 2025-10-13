@@ -20,7 +20,7 @@ export function FocusTimer({ visible, onComplete }: FocusTimerProps) {
   };
 
   useEffect(() => {
-    let interval: number;
+    let interval: ReturnType<typeof setInterval>;
     
     if (isRunning && timeLeft > 0) {
       interval = setInterval(() => {
@@ -35,7 +35,7 @@ export function FocusTimer({ visible, onComplete }: FocusTimerProps) {
       }, 1000);
     }
     
-    return () => clearInterval(interval);
+    return () => clearInterval(interval as any);
   }, [isRunning, timeLeft]);
 
   const handleSessionComplete = () => {

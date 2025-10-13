@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, Image as ImageIcon, X, Check, AlertCircle, Camera, Sparkles, Trash2, Download } from 'lucide-react';
 import type { AccessibilitySettings } from '../AccessibilityPanel';
@@ -21,36 +21,70 @@ interface UploadedImage {
 }
 
 export function ImageClassifier({ onComplete, accessibilitySettings }: ImageClassifierProps) {
+  const base = (import.meta as any).env?.BASE_URL || '/';
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const [showGuide, setShowGuide] = useState(true);
   const [totalAnalyzed, setTotalAnalyzed] = useState(0);
+  const [useRealModel, setUseRealModel] = useState(true);
+  const [modelReady, setModelReady] = useState(false);
+  const modelRef = useRef<any>(null);
+  const [oceanBg, setOceanBg] = useState(false);
 
-  // Simulated AI classification (in real app, would call actual AI model)
+  const ensureModel = useCallback(async () => {
+    if (modelRef.current) return true;
+    try {
+      const [{ default: mobilenet }, tf] = await Promise.all([
+        import('@tensorflow-models/mobilenet'),
+        import('@tensorflow/tfjs')
+      ]);
+      modelRef.current = await mobilenet.load({ version: 2, alpha: 0.5 });
+      setModelReady(true);
+      return true;
+    } catch (e) {
+      console.warn('Failed to load MobileNet. Falling back to simulated.', e);
+      setUseRealModel(false);
+      return false;
+    }
+  }, []);
+
   const classifyImage = async (imageId: string): Promise<void> => {
-    await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate processing time
-    
-    // Simple simulation - in reality would use actual image classification model
-    const categories = [
-      { label: 'Cat', confidence: 0.95, description: '🐱 This looks like a fluffy cat! Cats are popular pets with soft fur.' },
-      { label: 'Dog', confidence: 0.92, description: '🐕 This appears to be a friendly dog! Dogs are loyal companions.' },
-      { label: 'Person', confidence: 0.88, description: '👤 This is a person! Humans are the most intelligent species on Earth.' },
-      { label: 'Nature', confidence: 0.85, description: '🌳 This shows a natural scene with plants or landscapes.' },
-      { label: 'Food', confidence: 0.90, description: '🍕 This looks like delicious food! Food provides energy for our bodies.' },
-      { label: 'Vehicle', confidence: 0.87, description: '🚗 This is a vehicle used for transportation.' },
-      { label: 'Building', confidence: 0.83, description: '🏢 This shows a building or structure made by humans.' },
-      { label: 'Object', confidence: 0.80, description: '📦 This is an everyday object or item.' },
-    ];
-    
-    const randomCategory = categories[Math.floor(Math.random() * categories.length)];
-    
-    setImages(prev => prev.map(img => 
-      img.id === imageId 
-        ? { ...img, prediction: randomCategory, status: 'complete' as const }
-        : img
-    ));
-    
-    setTotalAnalyzed(prev => prev + 1);
+    const img = images.find(i => i.id === imageId);
+    if (!img) return;
+    if (useRealModel) {
+      const ok = await ensureModel();
+      if (!ok) {
+        // fallthrough to simulated
+      }
+    }
+    try {
+      if (useRealModel && modelRef.current) {
+        const el = new Image();
+        el.crossOrigin = 'anonymous';
+        el.src = img.preview;
+        await new Promise((res, rej) => { el.onload = () => res(true); el.onerror = rej; });
+        const results = await modelRef.current.classify(el, 3);
+        const best = results?.[0];
+        const label = best?.className || 'Object';
+        const confidence = Math.max(0.01, Math.min(0.99, best?.probability ?? 0.8));
+        const description = `AI thinks this is: ${label}.`;
+        setImages(prev => prev.map(im => im.id === imageId ? ({ ...im, prediction: { label, confidence, description }, status: 'complete' as const }) : im));
+      } else {
+        await new Promise(r => setTimeout(r, 1000));
+        const categories = [
+          { label: 'Fish', confidence: 0.93, description: 'Looks like a fish!' },
+          { label: 'Garbage', confidence: 0.88, description: 'Might be trash.' },
+          { label: 'Object', confidence: 0.83, description: 'An everyday object.' }
+        ];
+        const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+        setImages(prev => prev.map(im => im.id === imageId ? ({ ...im, prediction: randomCategory, status: 'complete' as const }) : im));
+      }
+      setTotalAnalyzed(prev => prev + 1);
+    } catch (e) {
+      console.warn('Classification failed', e);
+      setImages(prev => prev.map(im => im.id === imageId ? ({ ...im, prediction: { label: 'Unknown', confidence: 0.5, description: 'Could not classify' }, status: 'complete' as const }) : im));
+      setTotalAnalyzed(prev => prev + 1);
+    }
   };
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -121,13 +155,45 @@ export function ImageClassifier({ onComplete, accessibilitySettings }: ImageClas
   const handleRemove = (imageId: string) => {
     const image = images.find(img => img.id === imageId);
     if (image) {
-      URL.revokeObjectURL(image.preview);
+      try {
+        if (image.preview.startsWith('blob:')) {
+          URL.revokeObjectURL(image.preview);
+        }
+      } catch {}
     }
     setImages(prev => prev.filter(img => img.id !== imageId));
   };
 
+  const handleLoadSamples = async () => {
+    try {
+      const loadFrom = async (url: string) => {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('not found');
+        return res.json();
+      };
+      let list: string[] | null = null;
+      try { list = await loadFrom(base + 'samples/ocean/manifest.json'); } catch {}
+      if (!list) { try { list = await loadFrom(base + 'samples/manifest.json'); } catch {} }
+
+      if (list && Array.isArray(list) && list.length > 0) {
+        const now = Date.now();
+        const newImages: UploadedImage[] = list.map((path, idx) => {
+          const u = path.startsWith('http') ? path : (path.startsWith('/') ? base.replace(/\/$/, '') + path : base + path);
+          return { id: `sample-${now}-${idx}`, file: new File([], u), preview: u, status: 'ready' };
+        });
+        setImages(prev => [...prev, ...newImages]);
+      } else {
+        const path = base + 'Images/ocean.webp';
+        setImages(prev => [...prev, { id: `sample-${Date.now()}`, file: new File([], path), preview: path, status: 'ready' }]);
+      }
+    } catch (e) {
+      const path = base + 'Images/ocean.webp';
+      setImages(prev => [...prev, { id: `sample-${Date.now()}`, file: new File([], path), preview: path, status: 'ready' }]);
+    }
+  };
+
   const handleClear = () => {
-    images.forEach(img => URL.revokeObjectURL(img.preview));
+    images.forEach(img => { try { if (img.preview.startsWith('blob:')) URL.revokeObjectURL(img.preview); } catch {} });
     setImages([]);
     setTotalAnalyzed(0);
   };
@@ -238,19 +304,27 @@ export function ImageClassifier({ onComplete, accessibilitySettings }: ImageClas
         )}
 
         {/* Main Content */}
-        <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '2rem', boxShadow: '0 10px 25px -3px rgba(0, 0, 0, 0.1)' }}>
-          
+        <div style={{ backgroundColor: oceanBg ? 'rgba(255,255,255,0.85)' : 'white', borderRadius: '1rem', padding: '2rem', boxShadow: '0 10px 25px -3px rgba(0, 0, 0, 0.1)', position: 'relative', overflow: 'hidden' }}>
+          {oceanBg && (
+            <div aria-hidden style={{ position: 'absolute', inset: 0, backgroundImage: `url(${base}Images/ocean.webp)`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(2px)', opacity: 0.25, animation: 'float 12s ease-in-out infinite', pointerEvents: 'none' }} />
+          )}
+          <div style={{ position: 'relative' }}>
           {/* Header with Stats */}
           <div style={{ marginBottom: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', gap: '0.5rem' }}>
               <h1 style={{ fontSize: '2rem', fontWeight: '700', color: '#111827', margin: 0 }}>
                 Your Images
               </h1>
+              <div style={{ display: 'flex', gap: '0.5rem', marginLeft: 'auto' }}>
+                <button onClick={() => setOceanBg(v => !v)} style={{ background: oceanBg ? '#14b8a6' : '#e5e7eb', color: oceanBg ? '#fff' : '#111827', padding: '0.5rem 0.75rem', borderRadius: 8, border: 'none', cursor: 'pointer' }}>🌊 Ocean Background</button>
+                <button onClick={handleLoadSamples} style={{ background: '#f59e0b', color: 'white', padding: '0.5rem 0.75rem', borderRadius: 8, border: 'none', cursor: 'pointer' }}>Load Sample Images</button>
+                <button onClick={() => setUseRealModel(v => !v)} style={{ background: useRealModel ? '#3b82f6' : '#e5e7eb', color: useRealModel ? '#fff' : '#111827', padding: '0.5rem 0.75rem', borderRadius: 8, border: 'none', cursor: 'pointer' }}>{useRealModel ? 'AI Model: On' : 'AI Model: Off'}</button>
+              </div>
               {images.length > 0 && (
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   {images.filter(img => img.status === 'ready').length > 0 && (
                     <button
-                      onClick={handleAnalyzeAll}
+                      onClick={async () => { if (useRealModel) await ensureModel(); handleAnalyzeAll(); }}
                       style={{
                         backgroundColor: '#3b82f6',
                         color: 'white',
@@ -266,7 +340,7 @@ export function ImageClassifier({ onComplete, accessibilitySettings }: ImageClas
                       }}
                     >
                       <Sparkles style={{ width: '1.25rem', height: '1.25rem' }} />
-                      Analyze All
+                      {useRealModel ? (modelReady ? 'Analyze All (AI)' : 'Load & Analyze (AI)') : 'Analyze All'}
                     </button>
                   )}
                   {totalAnalyzed > 0 && (
@@ -618,7 +692,7 @@ export function ImageClassifier({ onComplete, accessibilitySettings }: ImageClas
                       {/* Action Button */}
                       {image.status === 'ready' && (
                         <button
-                          onClick={() => handleAnalyze(image.id)}
+                          onClick={async () => { if (useRealModel) await ensureModel(); await handleAnalyze(image.id); }}
                           style={{
                             width: '100%',
                             backgroundColor: '#3b82f6',
@@ -636,15 +710,15 @@ export function ImageClassifier({ onComplete, accessibilitySettings }: ImageClas
                           }}
                         >
                           <Sparkles style={{ width: '1.25rem', height: '1.25rem' }} />
-                          Analyze This Photo
+                          {useRealModel ? (modelReady ? 'Analyze (AI)' : 'Load & Analyze (AI)') : 'Analyze This Photo'}
                         </button>
                       )}
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
-          )}
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
 
           {/* Empty State */}
           {images.length === 0 && (
@@ -708,7 +782,13 @@ export function ImageClassifier({ onComplete, accessibilitySettings }: ImageClas
           border-radius: 50%;
           animation: spin 0.6s linear infinite;
         }
+        @keyframes float {
+          0% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
+          100% { transform: translateY(0); }
+        }
       `}</style>
-    </div>
+          </div>
+        </div>
   );
 }

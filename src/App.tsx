@@ -6,7 +6,7 @@ import { NeuralNetworkSimulation } from './components/modules/NeuralNetworkSimul
 // import { AIBuilder } from './components/modules/AIBuilder';
 import { LessonContent } from './components/modules/LessonContent';
 // import { InteractiveAITrainer } from './components/modules/InteractiveAITrainer';
-import { ImageClassifier } from './components/modules/ImageClassifier';
+import { AITrainingLab } from './components/modules/AITrainingLab';
 import AccessibilityPanel, { defaultAccessibilitySettings } from './components/AccessibilityPanel';
 import type { AccessibilitySettings } from './components/AccessibilityPanel';
 import { BadgeSystem } from './components/BadgeSystem';
@@ -28,7 +28,7 @@ import PracticeMode from './components/PracticeMode';
 
 function App() {
   const { user, isAuthenticated, login, signup, updateProgress } = useAuth();
-  const [currentView, setCurrentView] = useState<'welcome' | 'modules' | 'classification' | 'regression' | 'clustering' | 'neural-network' | 'introduction' | 'training-lab' | 'accessibility-demo' | 'image-classifier' | 'placement' | 'practice'>('welcome');
+  const [currentView, setCurrentView] = useState<'welcome' | 'modules' | 'classification' | 'regression' | 'clustering' | 'neural-network' | 'introduction' | 'training-lab' | 'accessibility-demo' | 'placement' | 'practice'>('welcome');
   const [completedModules, setCompletedModules] = useState<string[]>([]);
   const [scores, setScores] = useState<Record<string, number>>({});
   const [accessibilitySettings, setAccessibilitySettings] = useState<AccessibilitySettings>(defaultAccessibilitySettings);
@@ -260,49 +260,6 @@ function App() {
     );
   }
 
-  if (currentView === 'image-classifier') {
-    return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
-        <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb', backgroundColor: 'white' }}>
-          <button 
-            onClick={() => setCurrentView('modules')}
-            style={{
-              color: '#4b5563',
-              backgroundColor: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              padding: '0.5rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontWeight: '500'
-            }}
-          >
-            ← Back to Modules
-          </button>
-        </div>
-        <ImageClassifier 
-          onComplete={(score) => handleModuleComplete('image-classifier', score)} 
-          accessibilitySettings={accessibilitySettings}
-        />
-
-        {/* Authentication Modal */}
-        <AuthModal
-          isOpen={isAuthModalOpen}
-          onClose={() => setIsAuthModalOpen(false)}
-          onLogin={login}
-          onSignup={signup}
-        />
-
-        {/* User Dashboard */}
-        <UserDashboard
-          isOpen={isUserDashboardOpen}
-          onClose={() => setIsUserDashboardOpen(false)}
-        />
-      </div>
-    );
-  }
 
   if (currentView === 'accessibility-demo') {
     return (
@@ -1318,82 +1275,7 @@ function App() {
             <button className="bg-teal-500 hover:bg-teal-600 text-white font-medium py-2 px-4 rounded-lg transition-colors" onClick={() => setCurrentView('training-lab')} style={{ backgroundColor: '#14b8a6', color: 'white', fontWeight: 500, padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', cursor: 'pointer', transition: 'background-color 0.2s' }}>Open Lab</button>
           </div>
 
-          {/* Image Classifier Module - NEW! */}
-          <div 
-            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
-            style={{
-              backgroundColor: 'white',
-              borderRadius: '0.75rem',
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-              padding: '1.5rem',
-              transition: 'box-shadow 0.3s',
-              border: '3px solid #fbbf24'
-            }}
-          >
-            <div 
-              className="w-16 h-16 bg-yellow-500 rounded-lg flex items-center justify-center mb-4"
-              style={{
-                width: '4rem',
-                height: '4rem',
-                backgroundColor: '#fbbf24',
-                borderRadius: '0.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '1rem'
-              }}
-            >
-              <span style={{ color: 'white', fontSize: '1.5rem' }}>📸</span>
-            </div>
-            <h3 
-              className="text-xl font-semibold text-gray-900 mb-2"
-              style={{
-                fontSize: '1.25rem',
-                fontWeight: '600',
-                color: '#111827',
-                marginBottom: '0.5rem'
-              }}
-            >
-              Upload & Analyze Photos ✨ NEW!
-            </h3>
-            <p 
-              className="text-gray-600 mb-4"
-              style={{
-                color: '#4b5563',
-                marginBottom: '1rem',
-                fontSize: '0.95rem',
-                lineHeight: '1.6'
-              }}
-            >
-              Upload your own photos and let AI identify what's in them! Simple drag & drop interface perfect for everyone.
-            </p>
-            <button 
-              className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-              onClick={() => setCurrentView('image-classifier')}
-              style={{
-                backgroundColor: '#fbbf24',
-                color: 'white',
-                fontWeight: '600',
-                padding: '0.75rem 1.25rem',
-                borderRadius: '0.5rem',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                fontSize: '0.95rem',
-                width: '100%'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#f59e0b';
-                e.currentTarget.style.transform = 'scale(1.02)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#fbbf24';
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
-            >
-              📸 Upload Photos!
-            </button>
-          </div>
+          {/* Image classification folded into AI Training Lab (Images mode) */}
 
           {/* Accessibility Demo Module */}
           <div 
@@ -1527,4 +1409,3 @@ function App() {
 }
 
 export default App;
-import { AITrainingLab } from './components/modules/AITrainingLab';
