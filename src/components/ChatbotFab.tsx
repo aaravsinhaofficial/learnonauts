@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { geminiAI } from '../services/geminiAI';
 import { speechManager } from '../utils/speechSynthesis';
+import { formatMarkdown } from '../utils/markdownFormatter';
+import type { AccessibilitySettings } from './AccessibilityPanel';
 
 interface ChatbotFabProps {
   accessibility?: {
@@ -8,11 +10,13 @@ interface ChatbotFabProps {
     speechSpeed?: number;
     speechVolume?: number;
   };
+  accessibilitySettings?: AccessibilitySettings;
   currentPage?: string;
   pageContext?: string;
+  showFab?: boolean; // Whether to show the FAB button (hide if accessed from header)
 }
 
-export function ChatbotFab({ accessibility, currentPage, pageContext }: ChatbotFabProps) {
+export function ChatbotFab({ accessibility, accessibilitySettings, currentPage, pageContext, showFab = true }: ChatbotFabProps) {
   const [open, setOpen] = useState<boolean>(() => {
     try { return !!JSON.parse(localStorage.getItem('chatbot_open') || 'false'); } catch { return false; }
   });
@@ -33,6 +37,13 @@ export function ChatbotFab({ accessibility, currentPage, pageContext }: ChatbotF
   useEffect(() => { localStorage.setItem('chatbot_open', JSON.stringify(open)); }, [open]);
   // no user API key; use backend proxy
   useEffect(() => { scrollRef.current?.scrollTo({ top: 999999, behavior: 'smooth' }); }, [messages, sending]);
+  
+  // Listen for programmatic open events
+  useEffect(() => {
+    const handleOpen = () => setOpen(true);
+    window.addEventListener('openChatbot', handleOpen);
+    return () => window.removeEventListener('openChatbot', handleOpen);
+  }, []);
 
   const quickPrompts = [
     'Explain this step by step',
@@ -54,7 +65,26 @@ export function ChatbotFab({ accessibility, currentPage, pageContext }: ChatbotF
     setMessages(prev => [...prev, { role: 'user', text: content }]);
     setInput('');
     try {
-      // Build contextual message with app and page information
+      // Build accessibility context
+      let accessibilityContext = '';
+      if (accessibilitySettings) {
+        const features: string[] = [];
+        if (accessibilitySettings.speechEnabled) features.push('speech synthesis enabled');
+        if (accessibilitySettings.reducedMotion) features.push('reduced motion preferred');
+        if (accessibilitySettings.simplifiedUI) features.push('simplified interface preferred');
+        if (accessibilitySettings.visualLearningMode) features.push('visual learning style');
+        if (accessibilitySettings.auditoryLearningMode) features.push('auditory learning style');
+        if (accessibilitySettings.kinestheticLearningMode) features.push('kinesthetic learning style');
+        if (accessibilitySettings.colorTheme === 'dyslexia-friendly') features.push('dyslexia-friendly settings');
+        if (accessibilitySettings.taskSequencing) features.push('task sequencing support');
+        if (accessibilitySettings.breakReminders) features.push('break reminders active');
+        
+        if (features.length > 0) {
+          accessibilityContext = `\nUser Accessibility Settings: ${features.join(', ')}.`;
+        }
+      }
+
+      // Build contextual message with app, page, and accessibility information
       const appContext = `You are an AI learning assistant for Learnonauts, an educational platform teaching kids about artificial intelligence through interactive games and activities.
 
 App Overview:
@@ -63,11 +93,11 @@ App Overview:
 - The platform is designed to be accessible and neurodivergent-friendly with features like speech synthesis, break reminders, and customizable UI
 
 Current Page: ${currentPage || 'Main Dashboard'}
-${pageContext ? `Page Context: ${pageContext}` : ''}
+${pageContext ? `Page Context: ${pageContext}` : ''}${accessibilityContext}
 
 User Question: ${content}
 
-Please provide a helpful, kid-friendly response that relates to their current activity and the Learnonauts platform.`;
+Please provide a helpful, kid-friendly response that relates to their current activity and the Learnonauts platform. ${accessibilitySettings?.speechEnabled ? 'Keep responses concise since they will be read aloud.' : ''} ${accessibilitySettings?.simplifiedUI ? 'Use simple, clear language.' : ''} Use markdown formatting for better readability (bold with **, italic with *, headings with #, lists with -, etc.).`;
 
       const res = await geminiAI.sendMessage(appContext);
       const reply = res.text || 'I am here to help!';
@@ -90,36 +120,71 @@ Please provide a helpful, kid-friendly response that relates to their current ac
     width: size.w, height: size.h, background: 'white', borderRadius: 12,
     boxShadow: '0 18px 32px rgba(0,0,0,0.18)', display: 'flex', flexDirection: 'column',
     overflow: 'hidden', border: '1px solid #e5e7eb', position: 'absolute',
-    right: pos.x, bottom: pos.y
+    right: pos.x, bottom: pos.y, userSelect: 'none', // Prevent text selection in panel
+    transition: 'none' // Disable transitions during drag/resize for smooth movement
   };
 
   // Dragging by header
   const onDragStart = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent text selection
     const startX = e.clientX; const startY = e.clientY;
     const startPos = { ...pos };
+    
+    // Prevent text selection while dragging
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'move';
+    
     const move = (ev: MouseEvent) => {
+      ev.preventDefault(); // Prevent default drag behavior
       const dx = ev.clientX - startX; const dy = ev.clientY - startY;
       const nx = Math.max(0, startPos.x - dx); // moving panel by adjusting right/bottom
       const ny = Math.max(0, startPos.y - dy);
       setPos({ x: nx, y: ny });
     };
-    const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); localStorage.setItem('chatbot_pos', JSON.stringify({ x: pos.x, y: pos.y })); };
-    window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
+    
+    const up = () => { 
+      window.removeEventListener('mousemove', move); 
+      window.removeEventListener('mouseup', up); 
+      localStorage.setItem('chatbot_pos', JSON.stringify({ x: pos.x, y: pos.y })); 
+      // Restore text selection
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    };
+    
+    window.addEventListener('mousemove', move); 
+    window.addEventListener('mouseup', up);
   };
 
-  // Resizing by bottom-left corner handle
+  // Resizing by bottom-right corner handle
   const onResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     const startX = e.clientX; const startY = e.clientY;
     const startSize = { ...size };
+    
+    // Prevent text selection while resizing
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'nwse-resize';
+    
     const move = (ev: MouseEvent) => {
+      ev.preventDefault();
       const dx = ev.clientX - startX; const dy = ev.clientY - startY;
       const nw = Math.max(280, startSize.w + dx);
       const nh = Math.max(300, startSize.h + dy);
       setSize({ w: nw, h: nh });
     };
-    const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); localStorage.setItem('chatbot_size', JSON.stringify({ w: size.w, h: size.h })); };
-    window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
+    
+    const up = () => { 
+      window.removeEventListener('mousemove', move); 
+      window.removeEventListener('mouseup', up); 
+      localStorage.setItem('chatbot_size', JSON.stringify({ w: size.w, h: size.h })); 
+      // Restore text selection
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    };
+    
+    window.addEventListener('mousemove', move); 
+    window.addEventListener('mouseup', up);
   };
 
   return (
@@ -145,8 +210,8 @@ Please provide a helpful, kid-friendly response that relates to their current ac
             )}
             {messages.map((m, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start', marginBottom: 8 }}>
-                <div style={{ maxWidth: '80%', padding: '8px 10px', borderRadius: 10, background: m.role === 'user' ? '#eef2ff' : '#f1f5f9', border: '1px solid #e5e7eb', color: '#111827' }}>
-                  {m.text}
+                <div style={{ maxWidth: '80%', padding: '8px 10px', borderRadius: 10, background: m.role === 'user' ? '#eef2ff' : '#f1f5f9', border: '1px solid #e5e7eb', color: '#111827', fontSize: '0.875rem' }}>
+                  {m.role === 'assistant' ? formatMarkdown(m.text) : m.text}
                 </div>
               </div>
             ))}
@@ -167,16 +232,40 @@ Please provide a helpful, kid-friendly response that relates to their current ac
           </div>
 
           {/* Resize handle */}
-          <div onMouseDown={onResizeStart} aria-hidden style={{ position: 'absolute', right: 0, bottom: 0, width: 16, height: 16, cursor: 'nwse-resize', background: 'linear-gradient(135deg, transparent 50%, #e5e7eb 50%)' }} />
+          <div 
+            onMouseDown={onResizeStart} 
+            aria-hidden 
+            title="Drag to resize"
+            style={{ 
+              position: 'absolute', 
+              right: 0, 
+              bottom: 0, 
+              width: 20, 
+              height: 20, 
+              cursor: 'nwse-resize', 
+              background: 'linear-gradient(135deg, transparent 50%, #9ca3af 50%)',
+              opacity: 0.6,
+              transition: 'opacity 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.6'}
+          />
         </div>
       )}
 
       {/* FAB */}
-      {!open && (
+      {!open && showFab && (
         <button aria-label="Open AI Helper" onClick={() => setOpen(true)} style={fabStyle}>💬</button>
       )}
     </div>
   );
+}
+
+// Export a function to programmatically open the chatbot
+export function openChatbot() {
+  // This will be handled via React state management
+  const event = new CustomEvent('openChatbot');
+  window.dispatchEvent(event);
 }
 
 export default ChatbotFab;

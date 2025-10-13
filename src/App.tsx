@@ -150,6 +150,7 @@ function App() {
         <PlacementTest onComplete={(score) => handleModuleComplete('placement', score)} />
         <ChatbotFab 
           accessibility={accessibilitySettings} 
+          accessibilitySettings={accessibilitySettings}
           currentPage={getPageContext().page}
           pageContext={getPageContext().context}
         />
@@ -166,6 +167,7 @@ function App() {
         <PracticeMode onComplete={(score) => handleModuleComplete('practice', score)} />
         <ChatbotFab 
           accessibility={accessibilitySettings} 
+          accessibilitySettings={accessibilitySettings}
           currentPage={getPageContext().page}
           pageContext={getPageContext().context}
         />
@@ -196,6 +198,7 @@ function App() {
         />
         <ChatbotFab 
           accessibility={accessibilitySettings} 
+          accessibilitySettings={accessibilitySettings}
           currentPage={getPageContext().page}
           pageContext={getPageContext().context}
         />
@@ -242,6 +245,7 @@ function App() {
         />
         <ChatbotFab 
           accessibility={accessibilitySettings} 
+          accessibilitySettings={accessibilitySettings}
           currentPage={getPageContext().page}
           pageContext={getPageContext().context}
         />
@@ -287,6 +291,7 @@ function App() {
         />
         <ChatbotFab 
           accessibility={accessibilitySettings} 
+          accessibilitySettings={accessibilitySettings}
           currentPage={getPageContext().page}
           pageContext={getPageContext().context}
         />
@@ -322,6 +327,7 @@ function App() {
         <AITrainingLab onComplete={(score) => handleModuleComplete('training-lab', score)} />
         <ChatbotFab 
           accessibility={accessibilitySettings} 
+          accessibilitySettings={accessibilitySettings}
           currentPage={getPageContext().page}
           pageContext={getPageContext().context}
         />
@@ -367,6 +373,7 @@ function App() {
         />
         <ChatbotFab 
           accessibility={accessibilitySettings} 
+          accessibilitySettings={accessibilitySettings}
           currentPage={getPageContext().page}
           pageContext={getPageContext().context}
         />
@@ -417,6 +424,7 @@ function App() {
         />
         <ChatbotFab 
           accessibility={accessibilitySettings} 
+          accessibilitySettings={accessibilitySettings}
           currentPage={getPageContext().page}
           pageContext={getPageContext().context}
         />
@@ -462,6 +470,7 @@ function App() {
         />
         <ChatbotFab 
           accessibility={accessibilitySettings} 
+          accessibilitySettings={accessibilitySettings}
           currentPage={getPageContext().page}
           pageContext={getPageContext().context}
         />
@@ -809,6 +818,29 @@ function App() {
                   </button>
                   <button 
                     onClick={() => {
+                      const event = new CustomEvent('openChatbot');
+                      window.dispatchEvent(event);
+                    }}
+                    style={{
+                      color: '#7c3aed',
+                      backgroundColor: 'transparent',
+                      border: '1px solid #7c3aed',
+                      borderRadius: '0.5rem',
+                      padding: '0.5rem 1rem',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.375rem'
+                    }}
+                    title="Open AI Helper"
+                  >
+                    <span style={{ fontSize: '1rem' }}>💬</span>
+                    <span>AI Helper</span>
+                  </button>
+                  <button 
+                    onClick={() => {
                       console.log('🔧 Accessibility button clicked (authenticated)!');
                       setIsAccessibilityPanelOpen(true);
                     }}
@@ -870,6 +902,29 @@ function App() {
                     }}
                   >
                     Login / Sign Up
+                  </button>
+                  <button 
+                    onClick={() => {
+                      const event = new CustomEvent('openChatbot');
+                      window.dispatchEvent(event);
+                    }}
+                    style={{
+                      color: '#7c3aed',
+                      backgroundColor: 'transparent',
+                      border: '1px solid #7c3aed',
+                      borderRadius: '0.5rem',
+                      padding: '0.5rem 1rem',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.375rem'
+                    }}
+                    title="Open AI Helper"
+                  >
+                    <span style={{ fontSize: '1rem' }}>💬</span>
+                    <span>AI Helper</span>
                   </button>
                   <button 
                     onClick={() => {
@@ -1499,6 +1554,14 @@ function App() {
       <UserDashboard
         isOpen={isUserDashboardOpen}
         onClose={() => setIsUserDashboardOpen(false)}
+      />
+
+      {/* Chatbot - available on modules page */}
+      <ChatbotFab 
+        accessibility={accessibilitySettings} 
+        accessibilitySettings={accessibilitySettings}
+        currentPage={getPageContext().page}
+        pageContext={getPageContext().context}
       />
       </div>
       </NeurodivergentWrapper>
