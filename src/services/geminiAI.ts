@@ -1,9 +1,8 @@
 // Google Gemini AI service for Learnonaut
 // This service handles communication with the Google Gemini API
 
-// Replace this with your actual API key when ready
-const GEMINI_API_KEY = 'PLACEHOLDER_API_KEY';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+// Backend proxy endpoint (do not expose keys in frontend)
+const BACKEND_ENDPOINT = '/api/gemini';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -17,10 +16,10 @@ export interface GeminiResponse {
 }
 
 class GeminiAIService {
-  private apiKey: string;
+  private apiKey: string; // unused when backend proxy is configured
   private history: ChatMessage[] = [];
 
-  constructor(apiKey: string = GEMINI_API_KEY) {
+  constructor(apiKey: string = '') {
     this.apiKey = apiKey;
   }
 
@@ -68,16 +67,28 @@ class GeminiAIService {
         }
       };
 
-      // For now, we'll return a mock response instead of making an actual API call
-      // This should be replaced with actual API calls when ready
-      const mockResponse = this.getMockResponse(message);
-      
-      // Add assistant response to history
-      this.addToHistory({ role: 'assistant', content: mockResponse.text });
-      
-      return mockResponse;
+      // Try backend proxy first (recommended in production)
+      try {
+        const resp = await fetch(BACKEND_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, history: this.history })
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          const text = data?.text || '';
+          const reply: GeminiResponse = { text, done: true };
+          this.addToHistory({ role: 'assistant', content: text });
+          return reply;
+        }
+      } catch (_) {
+        // fall through to mock/local behaviour
+      }
 
-      /* Uncomment this code when ready to use the actual API
+      /* Optional direct call (only for trusted environments). In production,
+         use the backend proxy to avoid exposing API keys. Enable by setting
+         an API key via setApiKey and uncommenting. 
+
       const response = await fetch(`${GEMINI_API_URL}?key=${this.apiKey}`, {
         method: 'POST',
         headers: {
@@ -102,6 +113,11 @@ class GeminiAIService {
         done: true
       };
       */
+
+      // Mock fallback (offline/local)
+      const mockResponse = this.getMockResponse(message);
+      this.addToHistory({ role: 'assistant', content: mockResponse.text });
+      return mockResponse;
     } catch (error) {
       console.error('Error sending message to Gemini:', error);
       return {

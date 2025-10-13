@@ -31,6 +31,12 @@ export function AITrainingLab({ onComplete }: AITrainingLabProps) {
   const [datasetKind, setDatasetKind] = useState<DatasetKind>('ocean');
   const [points, setPoints] = useState<Point[]>([]);
   const [images, setImages] = useState<UserImage[]>([]);
+  const [samplesLoaded, setSamplesLoaded] = useState(false);
+  const [classifying, setClassifying] = useState<Set<string>>(new Set());
+  const [instructionsOk, setInstructionsOk] = useState<boolean>(() => {
+    try { return !!JSON.parse(localStorage.getItem('ai_lab_instructions_ok') || 'false'); } catch { return false; }
+  });
+  const imgInputRef = useRef<HTMLInputElement | null>(null);
   const [isTraining, setIsTraining] = useState(false);
   const [epoch, setEpoch] = useState(0);
   const [loss, setLoss] = useState(0);
@@ -240,6 +246,7 @@ export function AITrainingLab({ onComplete }: AITrainingLabProps) {
   const hiddenCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const readFiles = async (files: FileList | null) => {
+    if (!instructionsOk) return;
     if (!files) return;
     const newItems: UserImage[] = [];
     for (const f of Array.from(files)) {
@@ -264,22 +271,32 @@ export function AITrainingLab({ onComplete }: AITrainingLabProps) {
         const now = Date.now();
         const items: UserImage[] = list.map((p, i) => {
           const u = p.startsWith('http') ? p : (p.startsWith('/') ? base.replace(/\/$/, '') + p : base + p);
-          const lower = p.toLowerCase();
-          let label: Label | undefined = undefined;
-          if (lower.includes('fish')) label = 1; // fish
-          if (lower.includes('garbage') || lower.includes('trash') || lower.includes('waste')) label = 0; // garbage
-          return { id: `sample-${now}-${i}`, url: u, label };
+          return { id: `sample-${now}-${i}`, url: u };
         });
-        setImages(prev => [...prev, ...items]);
+        setImages(prev => {
+          // avoid duplicates by URL
+          const existing = new Set(prev.map(i => i.url));
+          const merged = [...prev, ...items.filter(i => !existing.has(i.url))];
+          return merged;
+        });
       } else {
         setImages(prev => [...prev, { id: `sample-${Date.now()}`, url: base + 'Images/ocean.webp' }]);
       }
     } catch (e) {
       setImages(prev => [...prev, { id: `sample-${Date.now()}`, url: base + 'Images/ocean.webp' }]);
     }
+    setSamplesLoaded(true);
   };
 
-  const extractVector = async (url: string, size = 16): Promise<Float32Array> => {
+  // Preload samples on first mount for Images mode
+  useEffect(() => {
+    if (mode === 'images' && !samplesLoaded) {
+      loadSamples();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, samplesLoaded]);
+
+  const computeVector = async (url: string, size = 24): Promise<Float32Array> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
@@ -293,12 +310,29 @@ export function AITrainingLab({ onComplete }: AITrainingLabProps) {
           ctx.clearRect(0, 0, size, size);
           ctx.drawImage(img, 0, 0, size, size);
           const data = ctx.getImageData(0, 0, size, size).data;
-          const vec = new Float32Array(size * size);
+          const gray = new Float32Array(size * size);
           for (let i = 0, j = 0; i < data.length; i += 4, j++) {
             const r = data[i], g = data[i + 1], b = data[i + 2];
-            vec[j] = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+            gray[j] = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
           }
-          resolve(vec);
+          // simple gradient magnitude
+          const grad = new Float32Array(size * size);
+          for (let y = 1; y < size - 1; y++) {
+            for (let x = 1; x < size - 1; x++) {
+              const idx = y * size + x;
+              const gx = gray[y * size + (x + 1)] - gray[y * size + (x - 1)];
+              const gy = gray[(y + 1) * size + x] - gray[(y - 1) * size + x];
+              grad[idx] = Math.min(1, Math.hypot(gx, gy));
+            }
+          }
+          // concatenate gray + grad and L2 normalize
+          const feat = new Float32Array(size * size * 2);
+          feat.set(gray, 0);
+          feat.set(grad, size * size);
+          let norm = 0; for (let i = 0; i < feat.length; i++) norm += feat[i] * feat[i];
+          norm = Math.sqrt(norm) || 1;
+          for (let i = 0; i < feat.length; i++) feat[i] /= norm;
+          resolve(feat);
         } catch (e) {
           reject(e);
         }
@@ -317,22 +351,29 @@ export function AITrainingLab({ onComplete }: AITrainingLabProps) {
     return Math.sqrt(s);
   };
 
-  const classifyVector = (vec: Float32Array, labeled: { vec: Float32Array; label: Label }[], k = 3): { label: Label; confidence: number } => {
+  const classifyVector = (vec: Float32Array, labeled: { vec: Float32Array; label: Label }[]): { label: Label; confidence: number } => {
     if (labeled.length === 0) return { label: 0, confidence: 0 };
+    const k = Math.max(3, Math.min(7, (Math.floor(Math.sqrt(labeled.length)) | 1))); // odd between 3..7
+    const eps = 1e-6;
     const sorted = labeled
       .map(sample => ({ sample, dist: distance(vec, sample.vec) }))
       .sort((a, b) => a.dist - b.dist)
       .slice(0, Math.min(k, labeled.length));
-    const ones = sorted.filter(s => s.sample.label === 1).length;
-    const conf = ones / sorted.length;
-    return { label: ones >= sorted.length - ones ? 1 : 0, confidence: conf };
+    let w1 = 0, w0 = 0;
+    for (const { sample, dist } of sorted) {
+      const w = 1 / (eps + dist);
+      if (sample.label === 1) w1 += w; else w0 += w;
+    }
+    const label = w1 >= w0 ? 1 : 0;
+    const confidence = (label === 1 ? w1 : w0) / (w1 + w0);
+    return { label, confidence };
   };
 
   const labelImage = async (id: string, label: Label) => {
     setImages(prev => prev.map(item => item.id === id ? { ...item, label } : item));
     const item = images.find(i => i.id === id);
     if (item) {
-      const vec = item.vector || await extractVector(item.url);
+      const vec = item.vector || await computeVector(item.url);
       setImages(prev => prev.map(p => p.id === id ? { ...p, vector: vec, label } : p));
     }
   };
@@ -341,19 +382,30 @@ export function AITrainingLab({ onComplete }: AITrainingLabProps) {
     const labeled: { vec: Float32Array; label: Label }[] = [];
     for (const item of images) {
       if (item.label !== undefined) {
-        const vec = item.vector || await extractVector(item.url);
+        const vec = item.vector || await computeVector(item.url);
         labeled.push({ vec, label: item.label });
       }
     }
-    const updated: typeof images = [];
+    if (labeled.length === 0) return; // need examples first
+    const newSet = new Set<string>();
+    setClassifying(newSet);
+    const updated: UserImage[] = [];
     for (const item of images) {
-      const vec = item.vector || await extractVector(item.url);
-      if (item.label === undefined && labeled.length > 0) {
-        const pred = classifyVector(vec, labeled, 3);
-        updated.push({ ...item, vector: vec, predicted: pred.label, confidence: pred.confidence });
-      } else {
-        updated.push({ ...item, vector: vec });
+      const id = item.id;
+      // set classifying visual
+      newSet.add(id);
+      setClassifying(new Set(newSet));
+      const vec = item.vector || await computeVector(item.url);
+      let out: UserImage = { ...item, vector: vec };
+      if (item.label === undefined) {
+        const pred = classifyVector(vec, labeled);
+        out = { ...out, predicted: pred.label, confidence: pred.confidence };
       }
+      updated.push(out);
+      // small delay for animation pacing
+      await new Promise(r => setTimeout(r, 180));
+      newSet.delete(id);
+      setClassifying(new Set(newSet));
     }
     setImages(updated);
   };
@@ -365,11 +417,11 @@ export function AITrainingLab({ onComplete }: AITrainingLabProps) {
     const split = Math.max(1, Math.floor(shuffled.length * 0.8));
     const train = shuffled.slice(0, split);
     const test = shuffled.slice(split);
-    const trainSamples = await Promise.all(train.map(async (i) => ({ vec: i.vector || await extractVector(i.url), label: i.label as Label })));
+    const trainSamples = await Promise.all(train.map(async (i) => ({ vec: i.vector || await computeVector(i.url), label: i.label as Label })));
     let correct = 0;
     for (const t of test) {
-      const vec = t.vector || await extractVector(t.url);
-      const pred = classifyVector(vec, trainSamples, 3);
+      const vec = t.vector || await computeVector(t.url);
+      const pred = classifyVector(vec, trainSamples);
       if (pred.label === t.label) correct++;
     }
     return Math.round((correct / test.length) * 100);
@@ -377,6 +429,15 @@ export function AITrainingLab({ onComplete }: AITrainingLabProps) {
 
   const finishImages = async () => {
     const score = await estimateAccuracy();
+    // Save a small showcase of high-confidence predictions to localStorage
+    try {
+      const best = images
+        .filter(i => i.predicted !== undefined && typeof i.confidence === 'number')
+        .sort((a, b) => (b.confidence || 0) - (a.confidence || 0))
+        .slice(0, 6)
+        .map(i => ({ url: i.url, predicted: i.predicted, confidence: i.confidence }));
+      localStorage.setItem('ai_showcase', JSON.stringify({ ts: Date.now(), items: best }));
+    } catch {}
     onComplete(score);
   };
 
@@ -390,11 +451,49 @@ export function AITrainingLab({ onComplete }: AITrainingLabProps) {
     } catch {}
   };
 
+  function Showcase({ base }: { base: string }) {
+    try {
+      const data = JSON.parse(localStorage.getItem('ai_showcase') || 'null');
+      const items: { url: string; predicted: Label; confidence: number }[] = data?.items || [];
+      if (!items.length) return null as any;
+      return (
+        <div style={{ background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 12, padding: 12, marginBottom: 10 }}>
+          <div style={{ fontWeight: 700, color: '#111827', marginBottom: 8 }}>Previous Results</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
+            {items.map((it, idx) => (
+              <div key={idx} style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
+                <div style={{ position: 'relative', width: '100%', paddingBottom: '62%' }}>
+                  <img src={it.url} alt="result" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <div style={{ padding: 6, fontSize: 12, color: '#374151' }}>
+                  Pred: {it.predicted === 1 ? 'Fish' : 'Garbage'} ({Math.round((it.confidence || 0) * 100)}%)
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    } catch { return null as any; }
+  }
+
   return (
     <div style={{ padding: '1rem', maxWidth: 1100, margin: '0 auto', position: 'relative' }}>
       {oceanBg && (
         <div aria-hidden style={{ position: 'absolute', inset: 0, backgroundImage: `url(${base}Images/ocean.webp)`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.15, zIndex: 0, animation: 'float 14s ease-in-out infinite', pointerEvents: 'none', borderRadius: 12 }} />
       )}
+      {/* Showcase (previous results) */}
+      <Showcase base={base} />
+
+      {/* Instruction banner */}
+      <div style={{ background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 12, padding: 12, marginBottom: 10 }}>
+        <div style={{ color: '#1e3a8a', fontWeight: 700, marginBottom: 6 }}>How this works</div>
+        <ul style={{ margin: 0, paddingLeft: '1.25rem', color: '#1e3a8a' }}>
+          <li>Step 1: Pick images (preloaded samples appear automatically, you can add your own)</li>
+          <li>Step 2: Tap Fish or Garbage on a few images to teach the AI</li>
+          <li>Step 3: Press Auto‑classify to let the AI label the rest</li>
+        </ul>
+      </div>
+
       {/* Mode + Quick toggles */}
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
         <button onClick={() => setMode('numeric')} style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: mode === 'numeric' ? '2px solid #6366f1' : '1px solid #d1d5db', background: mode === 'numeric' ? '#eef2ff' : 'white', cursor: 'pointer' }}>Numbers</button>
@@ -427,18 +526,41 @@ export function AITrainingLab({ onComplete }: AITrainingLabProps) {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', gap: '0.75rem', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <input type="file" multiple accept="image/*" onChange={(e) => readFiles(e.target.files)} aria-label="Upload images" />
-              <button onClick={classifyAll} style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px solid #d1d5db', background: 'white', cursor: 'pointer' }}>Auto Classify Unlabeled</button>
+              <button onClick={classifyAll} style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px solid #d1d5db', background: 'white', cursor: labeledCount === 0 ? 'not-allowed' : 'pointer', opacity: labeledCount === 0 ? 0.6 : 1 }} title={labeledCount === 0 ? 'Label a few images first' : 'Classify all unlabeled images'}>Auto Classify Unlabeled</button>
               <button onClick={finishImages} style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px solid #d1d5db', background: 'white', cursor: 'pointer' }}>Finish</button>
-              <button onClick={() => { loadSamples(); speak('Loaded sample ocean images.'); }} style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px solid #d1d5db', background: 'white', cursor: 'pointer' }}>Load Sample Images</button>
+              <button onClick={() => { setImages(prev => prev.map(i => ({ ...i, predicted: undefined, confidence: undefined }))); setClassifying(new Set()); }} style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px solid #e5e7eb', background: 'white', cursor: 'pointer' }}>Clear Predictions</button>
+              <button onClick={() => { loadSamples(); speak('Sample images refreshed'); }} style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px solid #d1d5db', background: 'white', cursor: 'pointer' }}>Reload Samples</button>
             </div>
-            <div style={{ color: '#6b7280', fontSize: 14 }}>Tip: Label a few examples (“Fish” and “Garbage”) to teach the model.</div>
+            <div style={{ color: '#6b7280', fontSize: 14 }}>
+              Labeled: <strong>{labeledCount}</strong> • Unlabeled: <strong>{images.length - labeledCount}</strong> • Predicted: <strong>{images.filter(i => i.predicted !== undefined).length}</strong>
+            </div>
           </div>
+
+          {images.filter(i => i.predicted !== undefined).length > 0 && (
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+              <div style={{ background: '#ecfdf5', border: '1px solid #bbf7d0', color: '#065f46', padding: '6px 10px', borderRadius: 9999 }}>Correct {images.filter(i => i.label !== undefined && i.predicted === i.label).length}</div>
+              <div style={{ background: '#fee2e2', border: '1px solid #fecaca', color: '#7f1d1d', padding: '6px 10px', borderRadius: 9999 }}>Incorrect {images.filter(i => i.label !== undefined && i.predicted !== undefined && i.predicted !== i.label).length}</div>
+              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1e3a8a', padding: '6px 10px', borderRadius: 9999 }}>Predicted {images.filter(i => i.predicted !== undefined).length}</div>
+            </div>
+          )}
 
           <div style={{ position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.75rem', alignItems: 'start' }}>
             {images.map(img => (
-              <div key={img.id} style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
+              <div key={img.id} style={{ background: 'white', border: `2px solid ${img.predicted !== undefined && img.label !== undefined ? (img.predicted === img.label ? '#10b981' : '#ef4444') : '#e5e7eb'}`, borderRadius: 10, overflow: 'hidden', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
                 <div style={{ position: 'relative', width: '100%', paddingBottom: '70%', overflow: 'hidden' }}>
                   <img src={img.url} alt="uploaded" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                  {classifying.has(img.id) && (
+                    <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'rgba(59,130,246,0.12)' }}>
+                      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 8, height: 6, background: '#e5e7eb' }}>
+                        <div style={{ width: '100%', height: '100%', background: 'linear-gradient(90deg, #60a5fa, #3b82f6)', animation: 'sweep 0.9s linear infinite' }} />
+                      </div>
+                    </div>
+                  )}
+                  {img.predicted !== undefined && (
+                    <div style={{ position: 'absolute', top: 6, left: 6, background: img.predicted === 1 ? '#10b981' : '#ef4444', color: 'white', fontWeight: 700, fontSize: 12, padding: '2px 6px', borderRadius: 6 }}>
+                      {img.predicted === 1 ? 'Fish' : 'Garbage'} {typeof img.confidence === 'number' ? `· ${Math.round((img.confidence || 0) * 100)}%` : ''}
+                    </div>
+                  )}
                 </div>
                 <div style={{ padding: 8, display: 'flex', gap: 6, alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', gap: 6 }}>
@@ -463,7 +585,10 @@ export function AITrainingLab({ onComplete }: AITrainingLabProps) {
           </div>
 
           <canvas ref={hiddenCanvasRef} width={16} height={16} style={{ display: 'none' }} />
-          <style>{`@keyframes float { 0%{transform:translateY(0)} 50%{transform:translateY(-6px)} 100%{transform:translateY(0)} }`}</style>
+          <style>{`
+            @keyframes float { 0%{transform:translateY(0)} 50%{transform:translateY(-6px)} 100%{transform:translateY(0)} }
+            @keyframes sweep { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+          `}</style>
         </>
       ) : (
         <>

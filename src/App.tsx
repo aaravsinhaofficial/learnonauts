@@ -25,6 +25,7 @@ import { TaskSequencer } from './components/TaskSequencer';
 import { adhdSettings, autismSettings, dyslexiaSettings } from './utils/accessibilitySettings';
 import PlacementTest from './components/PlacementTest';
 import PracticeMode from './components/PracticeMode';
+import ChatbotFab from './components/ChatbotFab';
 
 function App() {
   const { user, isAuthenticated, login, signup, updateProgress } = useAuth();
@@ -95,6 +96,7 @@ function App() {
           <button onClick={() => setCurrentView('modules')} style={{ color: '#4b5563', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem', padding: '0.5rem' }}>← Back to Modules</button>
         </div>
         <PlacementTest onComplete={(score) => handleModuleComplete('placement', score)} />
+        <ChatbotFab accessibility={accessibilitySettings} />
       </div>
     );
   }
@@ -106,6 +108,7 @@ function App() {
           <button onClick={() => setCurrentView('modules')} style={{ color: '#4b5563', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem', padding: '0.5rem' }}>← Back to Modules</button>
         </div>
         <PracticeMode onComplete={(score) => handleModuleComplete('practice', score)} />
+        <ChatbotFab accessibility={accessibilitySettings} />
       </div>
     );
   }
@@ -131,6 +134,7 @@ function App() {
           onComplete={(score) => handleModuleComplete('classification', score)} 
           accessibilitySettings={accessibilitySettings}
         />
+        <ChatbotFab accessibility={accessibilitySettings} />
 
         {/* Authentication Modal */}
         <AuthModal
@@ -172,6 +176,7 @@ function App() {
           onComplete={(score) => handleModuleComplete('clustering', score)} 
           accessibilitySettings={accessibilitySettings}
         />
+        <ChatbotFab accessibility={accessibilitySettings} />
 
         {/* Authentication Modal */}
         <AuthModal
@@ -212,6 +217,7 @@ function App() {
           onComplete={(score) => handleModuleComplete('neural-network', score)} 
           accessibilitySettings={accessibilitySettings}
         />
+        <ChatbotFab accessibility={accessibilitySettings} />
 
         {/* Authentication Modal */}
         <AuthModal
@@ -242,6 +248,7 @@ function App() {
           </button>
         </div>
         <AITrainingLab onComplete={(score) => handleModuleComplete('training-lab', score)} />
+        <ChatbotFab accessibility={accessibilitySettings} />
 
         {/* Authentication Modal */}
         <AuthModal
@@ -282,6 +289,7 @@ function App() {
         <AccessibilityDemo 
           settings={accessibilitySettings}
         />
+        <ChatbotFab accessibility={accessibilitySettings} />
 
         {/* Authentication Modal */}
         <AuthModal
@@ -327,6 +335,7 @@ function App() {
           }}
           accessibilitySettings={accessibilitySettings}
         />
+        <ChatbotFab accessibility={accessibilitySettings} />
 
         {/* Authentication Modal */}
         <AuthModal
