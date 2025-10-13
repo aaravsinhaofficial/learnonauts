@@ -5,12 +5,5 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   base: '/learnonauts/', // Set base path for GitHub Pages
   plugins: [react()],
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8787',
-        changeOrigin: true,
-      }
-    }
-  }
+  // Proxy removed - using direct API calls with VITE_GEMINI_API_KEY from .env.local
 })

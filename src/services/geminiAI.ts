@@ -3,6 +3,11 @@
 
 // Backend proxy endpoint (do not expose keys in frontend)
 const BACKEND_ENDPOINT = '/api/gemini';
+// Local-only direct key (use .env.local with VITE_GEMINI_API_KEY). Do NOT commit that file.
+const FRONTEND_API_KEY: string | undefined = import.meta.env.VITE_GEMINI_API_KEY;
+const DIRECT_MODEL_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+
+console.log('🔑 API Key loaded:', FRONTEND_API_KEY ? 'YES ✓' : 'NO ✗');
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -82,7 +87,34 @@ class GeminiAIService {
           return reply;
         }
       } catch (_) {
-        // fall through to mock/local behaviour
+        // fall through to direct/mock
+      }
+
+      // Optional direct call from the browser — LOCAL TESTING ONLY.
+      if (FRONTEND_API_KEY) {
+        console.log('🚀 Making direct API call to Gemini...');
+        try {
+          const response = await fetch(`${DIRECT_MODEL_URL}?key=${FRONTEND_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            const responseText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            console.log('✅ Got response from Gemini API');
+            this.addToHistory({ role: 'assistant', content: responseText });
+            return { text: responseText, done: true };
+          } else {
+            const errorData = await response.text();
+            console.error('❌ Gemini API error:', response.status, errorData);
+          }
+        } catch (error) {
+          console.error('❌ Direct API call failed:', error);
+        }
+      } else {
+        console.warn('⚠️ No FRONTEND_API_KEY found, falling back to mock');
       }
 
       /* Optional direct call (only for trusted environments). In production,
