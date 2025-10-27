@@ -39,27 +39,59 @@ A drag-and-drop, gamified AI/ML learning platform designed specifically for neur
 
 ## 🚀 Deployment
 
-### GitHub Pages Deployment
+### Quick Deploy to GitHub Pages
 
-The project is configured for easy deployment to GitHub Pages:
+The project is **ready for GitHub Pages deployment**! Choose your method:
 
-1. **Automatic Deployment (Recommended)**
-   - Push to the `main` branch
-   - GitHub Actions will automatically build and deploy to GitHub Pages
+#### Option 1: Automatic (Recommended) ✨
+```bash
+git add .
+git commit -m "Deploy to GitHub Pages"
+git push
+```
+GitHub Actions will automatically build and deploy!
 
-2. **Manual Deployment**
-   ```bash
-   # Build the project
-   npm run build
-   
-   # Deploy to GitHub Pages
-   npm run deploy
-   ```
+#### Option 2: Using Deployment Script 🔧
+```bash
+./scripts/deploy.sh
+```
+Interactive deployment with safety checks.
 
-3. **Configuration**
-   - The site is configured to be deployed at: `https://aaravsinhaofficial.github.io/learnonauts/`
-   - Base path is set to `/learnonauts/` in `vite.config.ts`
-   - A `.nojekyll` file is automatically added to the build to ensure proper file handling
+#### Option 3: Manual gh-pages 📦
+```bash
+npm run deploy
+```
+
+### 📚 Deployment Guides
+
+- **[QUICK_DEPLOY.md](./QUICK_DEPLOY.md)** - Fast setup in 5 steps
+- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - Complete documentation
+- **[DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)** - Pre-deployment checklist
+
+### 🔑 Important: API Key Setup
+
+The AI chatbot requires a Gemini API key:
+
+1. Get your API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Add as GitHub secret: `VITE_GEMINI_API_KEY`
+   - Go to: Settings → Secrets and variables → Actions
+   - Click: New repository secret
+   - Name: `VITE_GEMINI_API_KEY`
+   - Value: Your API key
+
+### 🌐 Live URL
+
+After deployment, your app will be at:
+```
+https://YOUR_USERNAME.github.io/learnonauts/
+```
+
+### 🛠️ Configuration
+
+- **Base path**: Set to `/learnonauts/` in `vite.config.ts`
+- **Build output**: `dist/` directory
+- **GitHub Actions**: `.github/workflows/deploy.yml`
+- **.nojekyll**: Automatically created during build
 
 ### Local Development
 
@@ -69,4 +101,10 @@ npm install
 
 # Start development server
 npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
 ```
