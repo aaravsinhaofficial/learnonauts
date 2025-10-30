@@ -44,12 +44,12 @@ export function BadgeSystem({ completedModules, scores, children }: BadgeSystemP
       earned: false
     },
     {
-      id: 'classifier-pro',
-      name: 'Classification Pro',
-      description: 'Score 90% or higher in Classification',
-      icon: '🎯',
+      id: 'lab-scientist',
+      name: 'Lab Scientist',
+      description: 'Score 90% or higher in the AI Training Lab',
+      icon: '🧪',
       color: 'bg-blue-500',
-      requirement: { type: 'score', threshold: 90, module: 'regression' },
+      requirement: { type: 'score', threshold: 90, module: 'training-lab' },
       earned: false
     },
     {

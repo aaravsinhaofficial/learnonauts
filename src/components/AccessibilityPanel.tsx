@@ -62,7 +62,7 @@ interface AccessibilityPanelProps {
   onSettingsChange: (settings: AccessibilitySettings) => void;
 }
 
-type TabType = 'visual' | 'audio' | 'reading' | 'focus' | 'learning' | 'controls';
+type TabType = 'visual' | 'audio' | 'reading' | 'focus' | 'controls';
 
 const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
   isOpen,
@@ -73,9 +73,13 @@ const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
 }) => {
   const [localSettings, setLocalSettings] = useState<AccessibilitySettings>(settings);
   const [activeTab, setActiveTab] = useState<TabType>('visual');
+  const [activePreset, setActivePreset] = useState<string | null>(null);
+  const [presetBaseline, setPresetBaseline] = useState<AccessibilitySettings | null>(null);
 
   useEffect(() => {
     setLocalSettings(settings);
+    setActivePreset(null);
+    setPresetBaseline(null);
   }, [settings]);
 
   const handleSettingChange = <K extends keyof AccessibilitySettings>(
@@ -361,13 +365,35 @@ const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
     border: '1px solid #3b82f6',
   };
 
+  const applyPreset = (presetId: string, updates: Partial<AccessibilitySettings>) => {
+    if (activePreset === presetId) {
+      if (presetBaseline) {
+        setLocalSettings(presetBaseline);
+        onSettingsChange(presetBaseline);
+      }
+      setActivePreset(null);
+      setPresetBaseline(null);
+      return;
+    }
+
+    const baseline = { ...localSettings };
+    const newSettings: AccessibilitySettings = {
+      ...localSettings,
+      ...updates,
+    };
+
+    setPresetBaseline(baseline);
+    setLocalSettings(newSettings);
+    onSettingsChange(newSettings);
+    setActivePreset(presetId);
+  };
+
   // Tab Icons
   const tabIcons = {
     visual: '👁️',
     audio: '🔊',
     reading: '📖',
     focus: '🧠',
-    learning: '🧩',
     controls: '⚙️',
   };
 
