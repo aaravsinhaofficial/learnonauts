@@ -654,18 +654,22 @@ function App() {
     >
       <NeurodivergentWrapper settings={accessibilitySettings}>
         <div 
-          className="min-h-screen bg-gray-50 p-6"
+          className="min-h-screen bg-gray-50"
           style={{
             minHeight: '100vh',
             backgroundColor: '#f8fafc',
-            padding: '1.5rem'
+            padding: '2rem clamp(1.5rem, 4vw, 3rem)',
+            boxSizing: 'border-box',
+            width: '100%'
           }}
         >
       <div 
-        className="max-w-6xl mx-auto"
         style={{
-          maxWidth: '72rem',
-          margin: '0 auto'
+          width: '100%',
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '2rem'
         }}
       >
         <header style={{ marginBottom: '2rem' }}>

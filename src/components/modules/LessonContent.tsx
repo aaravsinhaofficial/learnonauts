@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Brain, Lightbulb, Code, PlayCircle, CheckCircle, ChevronRight, ChevronLeft } from 'lucide-react';
 import type { AccessibilitySettings } from '../AccessibilityPanel';
@@ -28,6 +28,99 @@ interface LessonContentProps {
   onComplete: () => void;
   accessibilitySettings?: AccessibilitySettings;
 }
+
+const formatInline = (text: string): React.ReactNode => {
+  if (!text.includes('**')) return text;
+  const parts = text.split('**');
+  return parts.map((part, idx) => (
+    idx % 2 === 0 ? part : <strong key={`inline-${idx}`}>{part}</strong>
+  ));
+};
+
+const renderLessonContent = (raw: string): React.ReactNode => {
+  const lines = raw.split(/\r?\n/);
+  const elements: React.ReactNode[] = [];
+  let currentList: { type: 'ul' | 'ol'; items: React.ReactNode[] } | null = null;
+
+  const flushList = () => {
+    if (!currentList) return;
+    const listProps = {
+      style: {
+        margin: '0.5rem 0 1rem',
+        paddingLeft: currentList.type === 'ul' ? '1.25rem' : '1.75rem',
+        color: '#374151',
+        lineHeight: 1.7,
+        fontSize: '1.05rem'
+      }
+    };
+    elements.push(
+      currentList.type === 'ul'
+        ? <ul key={`list-${elements.length}`} {...listProps}>
+            {currentList.items.map((item, idx) => (
+              <li key={`li-${idx}`} style={{ marginBottom: '0.35rem' }}>{item}</li>
+            ))}
+          </ul>
+        : <ol key={`list-${elements.length}`} {...listProps}>
+            {currentList.items.map((item, idx) => (
+              <li key={`li-${idx}`} style={{ marginBottom: '0.35rem' }}>{item}</li>
+            ))}
+          </ol>
+    );
+    currentList = null;
+  };
+
+  lines.forEach((line, idx) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      flushList();
+      elements.push(<div key={`space-${idx}`} style={{ height: '0.75rem' }} />);
+      return;
+    }
+
+    const headingMatch = trimmed.match(/^\*\*(.+?)\*\*:?\s*$/);
+    if (headingMatch) {
+      flushList();
+      elements.push(
+        <h3 key={`heading-${idx}`} style={{ fontSize: '1.4rem', fontWeight: 700, color: '#111827', margin: '1rem 0 0.5rem' }}>
+          {headingMatch[1]}
+        </h3>
+      );
+      return;
+    }
+
+    const bulletMatch = trimmed.match(/^•\s*(.+)/);
+    if (bulletMatch) {
+      const content = bulletMatch[1];
+      if (!currentList || currentList.type !== 'ul') {
+        flushList();
+        currentList = { type: 'ul', items: [] };
+      }
+      currentList.items.push(<>{formatInline(content)}</>);
+      return;
+    }
+
+    const numberedMatch = trimmed.match(/^(\d+)\.\s*(.+)/);
+    if (numberedMatch) {
+      const content = numberedMatch[2];
+      if (!currentList || currentList.type !== 'ol') {
+        flushList();
+        currentList = { type: 'ol', items: [] };
+      }
+      currentList.items.push(<>{formatInline(content)}</>);
+      return;
+    }
+
+    flushList();
+    elements.push(
+      <p key={`para-${idx}`} style={{ margin: '0.25rem 0 1rem', color: '#374151', lineHeight: 1.8, fontSize: '1.1rem' }}>
+        {formatInline(trimmed)}
+      </p>
+    );
+  });
+
+  flushList();
+  return elements;
+};
 
 const lessons: Record<string, { title: string; icon: string; sections: LessonSection[] }> = {
   'ai-fundamentals': {
@@ -252,6 +345,7 @@ export function LessonContent({ lessonId, onComplete, accessibilitySettings }: L
   const [showQuizResult, setShowQuizResult] = useState(false);
 
   const section = lesson.sections[currentSection];
+  const contentMarkup = useMemo(() => renderLessonContent(section.content), [section.content]);
   const isLastSection = currentSection === lesson.sections.length - 1;
 
   const handleQuizSubmit = () => {
@@ -420,7 +514,7 @@ export function LessonContent({ lessonId, onComplete, accessibilitySettings }: L
               fontSize: '1.125rem',
               whiteSpace: 'pre-line'
             }}>
-              {section.content}
+              {contentMarkup}
             </div>
           </div>
 

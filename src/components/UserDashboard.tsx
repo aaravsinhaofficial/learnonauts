@@ -1,20 +1,7 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  User, 
-  Settings, 
-  Trophy, 
-  BarChart3, 
-  Calendar, 
-  Target, 
-  Clock,
-  Zap,
-  Award,
-  TrendingUp,
-  LogOut,
-  ChevronDown,
-  Star
-} from 'lucide-react';
+import type { ReactNode } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { BarChart3, Calendar, Clock, LogOut, Settings, Star, Target, TrendingUp, Trophy, User, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface UserDashboardProps {
@@ -22,9 +9,37 @@ interface UserDashboardProps {
   onClose: () => void;
 }
 
+type TabId = 'overview' | 'progress' | 'achievements' | 'settings';
+
+const tabs: Array<{ id: TabId; label: string; icon: React.ComponentType<{ size?: number }> }> = [
+  { id: 'overview', label: 'Overview', icon: BarChart3 },
+  { id: 'progress', label: 'Progress', icon: TrendingUp },
+  { id: 'achievements', label: 'Achievements', icon: Trophy },
+  { id: 'settings', label: 'Settings', icon: Settings }
+];
+
+const statCards = (data: {
+  completedModules: number;
+  overallScore: number;
+  timeSpent: string;
+  achievements: number;
+}) => [
+  { label: 'Modules Completed', value: data.completedModules, accent: '#3b82f6' },
+  { label: 'Overall Score', value: `${data.overallScore}%`, accent: '#22c55e' },
+  { label: 'Time Spent', value: data.timeSpent, accent: '#8b5cf6' },
+  { label: 'Achievements', value: data.achievements, accent: '#f97316' }
+];
+
+const cardStyle = {
+  backgroundColor: 'white',
+  borderRadius: '1rem',
+  padding: '1.5rem',
+  boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)'
+} as const;
+
 export function UserDashboard({ isOpen, onClose }: UserDashboardProps) {
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'progress' | 'achievements' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<TabId>('overview');
 
   if (!user || !isOpen) return null;
 
@@ -42,15 +57,330 @@ export function UserDashboard({ isOpen, onClose }: UserDashboardProps) {
     'training-lab',
     'image-classifier'
   ];
-  const completedModules = ALL_MODULE_IDS.filter(id => user.progress.moduleProgress[id]?.completed);
+
+  const progressData = user.progress ?? {
+    totalModulesCompleted: 0,
+    totalTimeSpent: 0,
+    currentStreak: 0,
+    longestStreak: 0,
+    lastActiveDate: new Date(),
+    moduleProgress: {}
+  };
+  const moduleProgressEntries = Object.entries(progressData.moduleProgress ?? {});
+  const achievements = user.achievements ?? [];
+
+  const completedModules = ALL_MODULE_IDS.filter((id) => progressData.moduleProgress?.[id]?.completed);
   const totalModules = ALL_MODULE_IDS.length;
-  const progressPercentage = (completedModules.length / totalModules) * 100;
+  const progressPercentage = totalModules
+    ? Math.round((completedModules.length / totalModules) * 100)
+    : 0;
+
+  const toDisplayDate = (value: unknown): string => {
+    if (!value) return '—';
+    const date = value instanceof Date ? value : new Date(value as any);
+    return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString();
+  };
 
   const formatTime = (minutes: number) => {
     if (minutes < 60) return `${minutes}m`;
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
+    return `${hours}h ${mins > 0 ? `${mins}m` : ''}`.trim();
+  };
+
+  const overviewContent = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      {/* Stat Cards */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+          gap: '1rem'
+        }}
+      >
+        {statCards({
+          completedModules: completedModules.length,
+          overallScore: progressData.overallScore ?? 0,
+          timeSpent: formatTime(progressData.totalTimeSpent ?? 0),
+          achievements: achievements.length
+        }).map(({ label, value, accent }) => (
+          <div
+            key={label}
+            style={{
+              borderRadius: '0.9rem',
+              padding: '1.25rem',
+              textAlign: 'center',
+              backgroundColor: `${accent}12`,
+              border: `1px solid ${accent}33`
+            }}
+          >
+            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: accent }}>{value}</div>
+            <div style={{ marginTop: '0.35rem', fontSize: '0.9rem', color: accent }}>{label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Progress Overview */}
+      <div style={cardStyle}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: '#1f2937' }}>Learning Progress</h3>
+          <span style={{ fontSize: '0.9rem', color: '#6b7280' }}>{progressPercentage}% complete</span>
+        </div>
+        <div style={{ width: '100%', height: '0.75rem', backgroundColor: '#e5e7eb', borderRadius: '9999px', marginBottom: '1.25rem' }}>
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${progressPercentage}%` }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            style={{
+              height: '100%',
+              borderRadius: '9999px',
+              background: 'linear-gradient(90deg, #8b5cf6, #3b82f6)'
+            }}
+          />
+        </div>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            gap: '1rem'
+          }}
+        >
+          {moduleProgressEntries.map(([moduleId, progress]) => (
+            <div
+              key={moduleId}
+              style={{
+                borderRadius: '0.9rem',
+                backgroundColor: '#f8fafc',
+                padding: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div
+                  style={{
+                    width: '2.5rem',
+                    height: '2.5rem',
+                    borderRadius: '9999px',
+                    backgroundColor: progress.completed ? '#22c55e' : '#9ca3af',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 600
+                  }}
+                  aria-hidden
+                >
+                  {progress.completed ? '✓' : moduleId[0].toUpperCase()}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 600, textTransform: 'capitalize', color: '#1f2937' }}>
+                    {moduleId.replace('-', ' ')}
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: '#4b5563' }}>
+                    Best: {progress.bestScore}% • {progress.attempts} attempts
+                  </div>
+                </div>
+              </div>
+              {progress.completed && <Star size={18} style={{ color: '#f59e0b' }} />}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Recent Activity */}
+      <div style={cardStyle}>
+        <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: '#1f2937', marginBottom: '1rem' }}>
+          Recent Activity
+        </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+          {moduleProgressEntries
+            .sort(([, a], [, b]) => new Date(b.lastAttemptAt ?? '').getTime() - new Date(a.lastAttemptAt ?? '').getTime())
+            .slice(0, 3)
+            .map(([moduleId, progress]) => (
+              <div
+                key={moduleId}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  backgroundColor: '#f3f4f6',
+                  padding: '0.85rem',
+                  borderRadius: '0.75rem'
+                }}
+              >
+                <div style={{ width: '0.5rem', height: '0.5rem', borderRadius: '9999px', backgroundColor: '#3b82f6' }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, color: '#111827', textTransform: 'capitalize' }}>
+                    {moduleId.replace('-', ' ')}
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: '#4b5563' }}>
+                    {toDisplayDate(progress.lastAttemptAt)} • Score: {progress.bestScore ?? 0}%
+                  </div>
+                </div>
+              </div>
+            ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const progressContent = (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
+      {moduleProgressEntries.map(([moduleId, progress]) => (
+        <div key={moduleId} style={cardStyle}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textTransform: 'capitalize', fontWeight: 600 }}>
+              {progress.completed && <Star size={18} style={{ color: '#f59e0b' }} />}
+              {moduleId.replace('-', ' ')}
+            </div>
+            <span
+              style={{
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                padding: '0.35rem 0.6rem',
+                borderRadius: '9999px',
+                backgroundColor: progress.completed ? '#dcfce7' : '#f3f4f6',
+                color: progress.completed ? '#166534' : '#4b5563'
+              }}
+            >
+              {progress.completed ? 'Completed' : 'In Progress'}
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem', color: '#374151' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>Best Score</span>
+            <strong>{progress.bestScore ?? 0}%</strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>Average Score</span>
+            <strong>{progress.averageScore ?? 0}%</strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>Attempts</span>
+            <strong>{progress.attempts ?? 0}</strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>Last Attempt</span>
+              <strong>{toDisplayDate(progress.lastAttemptAt)}</strong>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  const achievementsContent = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'stretch' }}>
+      <div style={{ textAlign: 'center' }}>
+        <h3 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, color: '#1f2937' }}>Your Achievements</h3>
+        <p style={{ marginTop: '0.5rem', color: '#4b5563' }}>
+          You&apos;ve unlocked {achievements.length} achievement{achievements.length === 1 ? '' : 's'}!
+        </p>
+      </div>
+
+      {achievements.length === 0 ? (
+        <div style={cardStyle}>
+          <div style={{ textAlign: 'center', color: '#6b7280' }}>
+            <Trophy size={48} style={{ marginBottom: '1rem', color: '#d1d5db' }} />
+            <h4 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '0.5rem' }}>No achievements yet</h4>
+            <p style={{ fontSize: '0.95rem' }}>
+              Keep exploring modules and completing challenges to start earning shiny trophies!
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '1rem'
+          }}
+        >
+          {achievements.map((achievement) => (
+            <motion.div
+              key={achievement.id}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              style={{
+                borderRadius: '1rem',
+                padding: '1.25rem',
+                background: 'linear-gradient(145deg, #fef3c7, #fde68a)',
+                border: '1px solid #facc15',
+                textAlign: 'center'
+              }}
+            >
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🏆</div>
+              <h4 style={{ margin: 0, fontWeight: 700, textTransform: 'capitalize', color: '#7c2d12' }}>
+                {achievement.id.replace('-', ' ')}
+              </h4>
+              <p style={{ margin: '0.5rem 0 0', fontSize: '0.9rem', color: '#92400e' }}>
+                Unlocked on {toDisplayDate(achievement.unlockedAt)}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const settingsContent = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div style={cardStyle}>
+        <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: '#1f2937', marginBottom: '1rem' }}>
+          Account Information
+        </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', fontSize: '0.95rem', color: '#374151' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>Display Name</span>
+            <strong>{user.displayName}</strong>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>Username</span>
+            <strong>@{user.username}</strong>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>Email</span>
+            <strong>{user.email}</strong>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>Member Since</span>
+            <strong>{toDisplayDate(user.createdAt)}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div style={cardStyle}>
+        <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: '#1f2937', marginBottom: '1rem' }}>
+          Learning Stats
+        </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', color: '#4b5563', fontSize: '0.95rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <Target size={20} style={{ color: '#7c3aed' }} />
+            <span>XP today: {progressData.xpToday ?? 0} / {progressData.dailyGoal ?? 30} xp goal</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <Clock size={20} style={{ color: '#2563eb' }} />
+            <span>Total XP earned: {progressData.xp ?? 0}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <User size={20} style={{ color: '#16a34a' }} />
+            <span>
+              Hearts: {progressData.hearts ?? progressData.maxHearts ?? 5} / {progressData.maxHearts ?? 5} available
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const tabContent: Record<TabId, ReactNode> = {
+    overview: overviewContent,
+    progress: progressContent,
+    achievements: achievementsContent,
+    settings: settingsContent
   };
 
   return (
@@ -61,12 +391,10 @@ export function UserDashboard({ isOpen, onClose }: UserDashboardProps) {
         exit={{ opacity: 0 }}
         style={{
           position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
+          inset: 0,
           zIndex: 50,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          backgroundColor: 'rgba(15, 23, 42, 0.5)',
+          backdropFilter: 'blur(2px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -75,16 +403,16 @@ export function UserDashboard({ isOpen, onClose }: UserDashboardProps) {
         onClick={onClose}
       >
         <motion.div
-          initial={{ scale: 0.9, opacity: 0, y: 20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.9, opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 24, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 24, scale: 0.95 }}
+          transition={{ duration: 0.25 }}
           style={{
-            backgroundColor: 'white',
-            borderRadius: '1rem',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            maxWidth: '56rem',
             width: '100%',
+            maxWidth: '58rem',
             maxHeight: '92vh',
+            backgroundColor: 'white',
+            borderRadius: '1.25rem',
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column'
@@ -92,44 +420,40 @@ export function UserDashboard({ isOpen, onClose }: UserDashboardProps) {
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div style={{
-            background: 'linear-gradient(to right, #7c3aed, #3b82f6)',
-            color: 'white',
-            padding: '1.25rem 1.5rem',
-            position: 'sticky',
-            top: 0,
-            zIndex: 1
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div
+            style={{
+              background: 'linear-gradient(120deg, #7c3aed, #3b82f6)',
+              color: 'white',
+              padding: '1.25rem 1.75rem'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{
-                  width: '4rem',
-                  height: '4rem',
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '1.5rem'
-                }}>
+                <div
+                  style={{
+                    width: '4.25rem',
+                    height: '4.25rem',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(255,255,255,0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1.75rem'
+                  }}
+                  aria-hidden
+                >
                   {user.avatar || '🚀'}
                 </div>
                 <div>
-                  <h2 style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0 }}>{user.displayName}</h2>
-                  <p style={{ color: 'rgba(147, 197, 253, 1)', margin: '0.25rem 0' }}>@{user.username}</p>
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '1rem', 
-                    marginTop: '0.5rem', 
-                    fontSize: '0.875rem' 
-                  }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <Calendar size={14} />
-                      Joined {user.createdAt.toLocaleDateString()}
+                  <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 700 }}>{user.displayName}</h2>
+                  <p style={{ margin: '0.25rem 0 0', color: 'rgba(191, 219, 254, 0.9)' }}>@{user.username}</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.75rem', fontSize: '0.9rem' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <Calendar size={16} />
+                      Joined {toDisplayDate(user.createdAt)}
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <Zap size={14} />
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <Zap size={16} />
                       {user.progress.currentStreak} day streak
                     </span>
                   </div>
@@ -139,38 +463,32 @@ export function UserDashboard({ isOpen, onClose }: UserDashboardProps) {
                 <button
                   onClick={handleLogout}
                   style={{
-                    color: 'white',
+                    padding: '0.5rem 0.75rem',
+                    borderRadius: '0.75rem',
+                    border: '1px solid rgba(255,255,255,0.35)',
                     backgroundColor: 'transparent',
-                    border: 'none',
-                    padding: '0.5rem',
-                    borderRadius: '0.5rem',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s',
+                    color: 'white',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.5rem'
+                    gap: '0.5rem',
+                    cursor: 'pointer'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  <LogOut size={18} />
-                  <span style={{ display: window.innerWidth >= 640 ? 'inline' : 'none' }}>Sign Out</span>
+                  <LogOut size={16} />
+                  <span>Sign out</span>
                 </button>
                 <button
                   onClick={onClose}
                   style={{
-                    color: 'white',
-                    backgroundColor: 'transparent',
                     border: 'none',
-                    padding: '0.5rem',
+                    backgroundColor: 'transparent',
+                    color: 'white',
+                    fontSize: '1.35rem',
+                    padding: '0.25rem 0.5rem',
                     borderRadius: '0.5rem',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s',
-                    fontSize: '1.25rem'
+                    cursor: 'pointer'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  aria-label="Close"
+                  aria-label="Close profile"
                 >
                   ✕
                 </button>
@@ -178,275 +496,58 @@ export function UserDashboard({ isOpen, onClose }: UserDashboardProps) {
             </div>
           </div>
 
-          {/* Tab Navigation */}
-          <div className="flex border-b border-gray-200 bg-gray-50 sticky top-0 z-10">
-            {[
-              { id: 'overview', label: 'Overview', icon: BarChart3 },
-              { id: 'progress', label: 'Progress', icon: TrendingUp },
-              { id: 'achievements', label: 'Achievements', icon: Trophy },
-              { id: 'settings', label: 'Settings', icon: Settings }
-            ].map(({ id, label, icon: Icon }) => (
-              <button
-                key={id}
-                onClick={() => setActiveTab(id as any)}
-                className={`flex-1 p-4 text-center font-medium transition-colors flex items-center justify-center gap-2 ${
-                  activeTab === id
-                    ? 'text-purple-600 bg-white border-b-2 border-purple-600'
-                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-                }`}
-              >
-                <Icon size={18} />
-                <span className="hidden sm:inline">{label}</span>
-              </button>
-            ))}
-          </div>
+          {/* Tab navigation */}
+          <nav
+            style={{
+              display: 'flex',
+              backgroundColor: '#f8fafc',
+              borderBottom: '1px solid #e5e7eb'
+            }}
+          >
+            {tabs.map(({ id, label, icon: Icon }) => {
+              const active = activeTab === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => setActiveTab(id)}
+                  style={{
+                    flex: 1,
+                    padding: '1rem 1.25rem',
+                    border: 'none',
+                    backgroundColor: active ? '#ffffff' : '#f8fafc',
+                    color: active ? '#7c3aed' : '#4b5563',
+                    borderBottom: `3px solid ${active ? '#7c3aed' : 'transparent'}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s, color 0.2s'
+                  }}
+                >
+                  <Icon size={18} />
+                  <span>{label}</span>
+                </button>
+              );
+            })}
+          </nav>
 
-          {/* Content */}
-          <div className="p-6 overflow-y-auto" style={{ flex: 1 }}>
-            {/* Overview Tab */}
-            {activeTab === 'overview' && (
-              <div className="space-y-6">
-                {/* Stats Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-blue-50 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-blue-600">{completedModules.length}</div>
-                    <div className="text-sm text-blue-800">Modules Completed</div>
-                  </div>
-                  <div className="bg-green-50 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-green-600">{user.progress.overallScore}%</div>
-                    <div className="text-sm text-green-800">Overall Score</div>
-                  </div>
-                  <div className="bg-purple-50 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-purple-600">{formatTime(user.progress.totalTimeSpent)}</div>
-                    <div className="text-sm text-purple-800">Time Spent</div>
-                  </div>
-                  <div className="bg-orange-50 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-orange-600">{user.achievements.length}</div>
-                    <div className="text-sm text-orange-800">Achievements</div>
-                  </div>
-                </div>
-
-                {/* Progress Overview */}
-                <div className="bg-white border rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-800">Learning Progress</h3>
-                    <span className="text-sm text-gray-600">{Math.round(progressPercentage)}% Complete</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
-                    <motion.div
-                      className="bg-gradient-to-r from-purple-500 to-blue-500 h-4 rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${progressPercentage}%` }}
-                      transition={{ duration: 1, ease: "easeOut" }}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {Object.entries(user.progress.moduleProgress).map(([moduleId, progress]) => (
-                      <div key={moduleId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm ${
-                            progress.completed ? 'bg-green-500' : 'bg-gray-400'
-                          }`}>
-                            {progress.completed ? '✓' : moduleId.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <div className="font-medium capitalize">{moduleId.replace('-', ' ')}</div>
-                            <div className="text-sm text-gray-600">
-                              Best: {progress.bestScore}% • {progress.attempts} attempts
-                            </div>
-                          </div>
-                        </div>
-                        {progress.completed && <Star className="text-yellow-500" size={20} />}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Recent Activity */}
-                <div className="bg-white border rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h3>
-                  <div className="space-y-3">
-                    {Object.entries(user.progress.moduleProgress)
-                      .sort(([,a], [,b]) => new Date(b.lastAttemptAt).getTime() - new Date(a.lastAttemptAt).getTime())
-                      .slice(0, 3)
-                      .map(([moduleId, progress]) => (
-                        <div key={moduleId} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <div className="flex-1">
-                            <span className="font-medium">Completed {moduleId.replace('-', ' ')}</span>
-                            <div className="text-sm text-gray-600">
-                              {new Date(progress.lastAttemptAt).toLocaleDateString()} • Score: {progress.bestScore}%
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Progress Tab */}
-            {activeTab === 'progress' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {Object.entries(user.progress.moduleProgress).map(([moduleId, progress]) => (
-                    <div key={moduleId} className="bg-white border rounded-lg p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-semibold text-gray-800 capitalize flex items-center gap-2">
-                          {progress.completed && <Star className="text-yellow-500" size={18} />}
-                          {moduleId.replace('-', ' ')}
-                        </h3>
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          progress.completed 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {progress.completed ? 'Completed' : 'In Progress'}
-                        </span>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Best Score</span>
-                          <span className="font-medium">{progress.bestScore}%</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Average Score</span>
-                          <span className="font-medium">{progress.averageScore}%</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Attempts</span>
-                          <span className="font-medium">{progress.attempts}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Time Spent</span>
-                          <span className="font-medium">{formatTime(progress.timeSpent)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Perfect Scores</span>
-                          <span className="font-medium">{progress.perfectScores}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Last Attempt</span>
-                          <span className="font-medium">{new Date(progress.lastAttemptAt).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Achievements Tab */}
-            {activeTab === 'achievements' && (
-              <div className="space-y-6">
-                <div className="text-center">
-                  <h3 className="text-2xl font-bold text-gray-800 mb-2">Your Achievements</h3>
-                  <p className="text-gray-600">You've unlocked {user.achievements.length} achievement{user.achievements.length !== 1 ? 's' : ''}!</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {user.achievements.map((achievement) => (
-                    <motion.div
-                      key={achievement.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-lg p-4 text-center"
-                    >
-                      <div className="text-3xl mb-2">🏆</div>
-                      <h4 className="font-bold text-gray-800 mb-1 capitalize">{achievement.id.replace('-', ' ')}</h4>
-                      <p className="text-sm text-gray-600 mb-2">
-                        Unlocked on {achievement.unlockedAt.toLocaleDateString()}
-                      </p>
-                    </motion.div>
-                  ))}
-                </div>
-
-                {user.achievements.length === 0 && (
-                  <div className="text-center py-8">
-                    <Trophy className="mx-auto text-gray-400 mb-4" size={48} />
-                    <h3 className="text-lg font-semibold text-gray-600 mb-2">No achievements yet</h3>
-                    <p className="text-gray-500">Complete modules and reach milestones to unlock achievements!</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Settings Tab */}
-            {activeTab === 'settings' && (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Account Information</h3>
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Display Name</span>
-                      <span className="font-medium">{user.displayName}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Username</span>
-                      <span className="font-medium">@{user.username}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Email</span>
-                      <span className="font-medium">{user.email}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Member Since</span>
-                      <span className="font-medium">{user.createdAt.toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Preferences</h3>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-700">Achievement Notifications</span>
-                      <button className={`relative w-12 h-6 rounded-full transition-colors ${
-                        user.preferences.notifications.achievements ? 'bg-purple-600' : 'bg-gray-300'
-                      }`}>
-                        <div className={`absolute w-5 h-5 bg-white rounded-full top-0.5 transition-transform ${
-                          user.preferences.notifications.achievements ? 'translate-x-6' : 'translate-x-0.5'
-                        }`} />
-                      </button>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-700">Daily Reminders</span>
-                      <button className={`relative w-12 h-6 rounded-full transition-colors ${
-                        user.preferences.notifications.dailyReminders ? 'bg-purple-600' : 'bg-gray-300'
-                      }`}>
-                        <div className={`absolute w-5 h-5 bg-white rounded-full top-0.5 transition-transform ${
-                          user.preferences.notifications.dailyReminders ? 'translate-x-6' : 'translate-x-0.5'
-                        }`} />
-                      </button>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-700">Weekly Progress Reports</span>
-                      <button className={`relative w-12 h-6 rounded-full transition-colors ${
-                        user.preferences.notifications.weeklyProgress ? 'bg-purple-600' : 'bg-gray-300'
-                      }`}>
-                        <div className={`absolute w-5 h-5 bg-white rounded-full top-0.5 transition-transform ${
-                          user.preferences.notifications.weeklyProgress ? 'translate-x-6' : 'translate-x-0.5'
-                        }`} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-gray-200">
-                  <button
-                    onClick={handleLogout}
-                    className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-                  >
-                    <LogOut size={18} />
-                    Sign Out
-                  </button>
-                </div>
-              </div>
-            )}
+          {/* Tab content */}
+          <div
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+              backgroundColor: '#f9fafb',
+              padding: '1.75rem'
+            }}
+          >
+            {tabContent[activeTab]}
           </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>
   );
 }
+
+export default UserDashboard;
