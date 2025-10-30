@@ -9,7 +9,6 @@ interface ProgressTrackerProps {
 
 const modules = [
   { id: 'introduction', name: 'AI Introduction', icon: '📘', color: 'indigo' },
-  { id: 'classification', name: 'Sorting Things', icon: '🎯', color: 'blue' },
   { id: 'clustering', name: 'Pattern Detective', icon: '🔍', color: 'purple' },
   { id: 'regression', name: 'Prediction Explorer', icon: '📈', color: 'green' },
   { id: 'neural-network', name: 'Neural Network Lab', icon: '⚡', color: 'red' },

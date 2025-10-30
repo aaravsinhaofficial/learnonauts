@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Pause, RotateCcw, Zap, Brain, TrendingUp } from 'lucide-react';
 import type { AccessibilitySettings } from '../AccessibilityPanel';
@@ -18,7 +18,12 @@ interface Connection {
   to: string;
   weight: number;
   active: boolean;
-  signal?: number;
+}
+
+interface SimulationFrame {
+  layer: number;
+  neurons: Record<string, number>;
+  connections: Array<{ from: string; to: string; weight: number; signal: number }>;
 }
 
 interface Scenario {
@@ -92,7 +97,7 @@ export function NeuralNetworkSimulation({ onComplete, accessibilitySettings }: N
 
   const [inputValues, setInputValues] = useState(scenarios[0].inputs.map(input => input.value));
 
-  const [neurons, setNeurons] = useState<Neuron[]>([
+  const neurons = useMemo<Neuron[]>(() => ([
     // Input layer
     { id: 'i1', layer: 0, position: { x: 120, y: 120 }, value: 0.8, activation: 0.8, bias: 0, label: 'Input 1' },
     { id: 'i2', layer: 0, position: { x: 120, y: 200 }, value: 0.3, activation: 0.3, bias: 0, label: 'Input 2' },
@@ -112,9 +117,9 @@ export function NeuralNetworkSimulation({ onComplete, accessibilitySettings }: N
     // Output layer
     { id: 'o1', layer: 3, position: { x: 600, y: 160 }, value: 0, activation: 0, bias: 0, label: 'Confidence' },
     { id: 'o2', layer: 3, position: { x: 600, y: 220 }, value: 0, activation: 0, bias: 0, label: 'Result' }
-  ]);
+  ]), []);
 
-  const [connections, setConnections] = useState<Connection[]>([
+  const connections = useMemo<Connection[]>(() => [
     // Input to hidden layer 1
     { from: 'i1', to: 'h1', weight: 0.8, active: false },
     { from: 'i1', to: 'h2', weight: -0.3, active: false },
@@ -155,14 +160,24 @@ export function NeuralNetworkSimulation({ onComplete, accessibilitySettings }: N
     { from: 'h6', to: 'o2', weight: 0.9, active: false },
     { from: 'h7', to: 'o1', weight: -0.2, active: false },
     { from: 'h7', to: 'o2', weight: 0.7, active: false }
-  ]);
+  ], []);
 
-  const [activeConnections, setActiveConnections] = useState<string[]>([]);
+  const [simulationFrames, setSimulationFrames] = useState<SimulationFrame[]>([]);
+  const [simulationIndex, setSimulationIndex] = useState<number>(-1);
+  const [connectionSignals, setConnectionSignals] = useState<Record<string, number>>({});
+  const simulationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [neuronValues, setNeuronValues] = useState<Record<string, number>>({});
 
   // Update input values when scenario changes
   useEffect(() => {
-    setInputValues(scenarios[currentScenario].inputs.map(input => input.value));
+    reset();
+    const inputs = scenarios[currentScenario].inputs;
+    setInputValues(inputs.map((input) => input.value));
+    const initial: Record<string, number> = {};
+    inputs.forEach((input, index) => {
+      initial[`i${index + 1}`] = normalizeInput(input.value, input.min, input.max);
+    });
+    setNeuronValues(initial);
   }, [currentScenario]);
 
   function sigmoid(x: number): number {
@@ -189,99 +204,138 @@ export function NeuralNetworkSimulation({ onComplete, accessibilitySettings }: N
       scenarios[currentScenario].inputs[index].max
     );
     
-    const newNeuronValues = { ...neuronValues };
-    newNeuronValues[`i${index + 1}`] = normalizedValue;
-    setNeuronValues(newNeuronValues);
+    setNeuronValues((prev) => ({
+      ...prev,
+      [`i${index + 1}`]: normalizedValue,
+    }));
   }
 
-  function runSimulation() {
-    if (isRunning) {
-      setIsRunning(false);
-      return;
-    }
+  const buildSimulationFrames = () => {
+    const frames: SimulationFrame[] = [];
+    const workingValues: Record<string, number> = {};
 
-    setIsRunning(true);
-    setStep(0);
-    setActiveConnections([]);
-    
-    // Initialize with current input values
-    const initialValues: Record<string, number> = {};
-    inputValues.forEach((value, index) => {
-      const normalizedValue = normalizeInput(
-        value,
-        scenarios[currentScenario].inputs[index].min,
-        scenarios[currentScenario].inputs[index].max
-      );
-      initialValues[`i${index + 1}`] = normalizedValue;
+    scenarios[currentScenario].inputs.forEach((input, index) => {
+      const normalizedValue = normalizeInput(inputValues[index], input.min, input.max);
+      workingValues[`i${index + 1}`] = normalizedValue;
     });
-    
-    // Reset other layers
-    neurons.forEach(neuron => {
-      if (neuron.layer > 0) {
+
+    const initialValues: Record<string, number> = {};
+    neurons.forEach((neuron) => {
+      if (neuron.layer === 0) {
+        initialValues[neuron.id] = workingValues[neuron.id] ?? 0;
+      } else {
         initialValues[neuron.id] = 0;
       }
     });
-    
-    setNeuronValues(initialValues);
 
-    // Start the forward pass
-    setTimeout(() => processLayer(1), 800);
-  }
+    for (let layerNum = 1; layerNum <= 3; layerNum++) {
+      const targetNeurons = neurons.filter((n) => n.layer === layerNum);
+      const layerOutputs: Record<string, number> = {};
+      const layerConnections: SimulationFrame['connections'] = [];
 
-  function processLayer(layerNum: number) {
-    if (!isRunning) return;
-    
-    setStep(layerNum);
-    const newValues = { ...neuronValues };
-    const newActiveConnections: string[] = [];
+      targetNeurons.forEach((targetNeuron) => {
+        let sum = targetNeuron.bias;
 
-    // Get neurons in the target layer
-    const targetNeurons = neurons.filter(n => n.layer === layerNum);
-    
-    targetNeurons.forEach(targetNeuron => {
-      let sum = 0;
-      let connectionCount = 0;
-      
-      connections.forEach(conn => {
-        if (conn.to === targetNeuron.id) {
-          const inputValue = newValues[conn.from] || 0;
-          const weightedInput = inputValue * conn.weight;
-          sum += weightedInput;
-          connectionCount++;
-          
-          // Store signal strength for visualization
-          const updatedConnections = [...connections];
-          const connIndex = updatedConnections.findIndex(c => c.from === conn.from && c.to === conn.to);
-          if (connIndex !== -1) {
-            updatedConnections[connIndex] = { ...conn, signal: Math.abs(weightedInput), active: true };
+        connections.forEach((conn) => {
+          if (conn.to === targetNeuron.id) {
+            const inputValue = workingValues[conn.from] ?? 0;
+            const signal = inputValue * conn.weight;
+            sum += signal;
+            layerConnections.push({
+              from: conn.from,
+              to: conn.to,
+              weight: conn.weight,
+              signal,
+            });
           }
-          setConnections(updatedConnections);
-          
-          newActiveConnections.push(`${conn.from}-${conn.to}`);
-        }
+        });
+
+        const activated = layerNum === 3 ? sigmoid(sum) : relu(sum);
+        layerOutputs[targetNeuron.id] = activated;
       });
-      
-      // Add bias and apply activation
-      sum += targetNeuron.bias;
-      newValues[targetNeuron.id] = layerNum === 3 ? sigmoid(sum) : relu(sum); // Output layer uses sigmoid, hidden uses ReLU
-    });
 
-    setNeuronValues(newValues);
-    setActiveConnections(newActiveConnections);
-
-    // Continue to next layer or finish
-    if (layerNum < 3) {
-      setTimeout(() => processLayer(layerNum + 1), 1200);
-    } else {
-      setTimeout(() => {
-        setIsRunning(false);
-        setStep(4);
-        onComplete(90);
-      }, 1500);
+      Object.assign(workingValues, layerOutputs);
+      frames.push({ layer: layerNum, neurons: layerOutputs, connections: layerConnections });
     }
+
+    return { frames, initialValues };
+  };
+
+  function runSimulation() {
+    if (isTraining) return;
+
+    if (isRunning) {
+      setIsRunning(false);
+      setSimulationIndex(-1);
+      setConnectionSignals({});
+      setStep(0);
+      if (simulationTimerRef.current) {
+        clearTimeout(simulationTimerRef.current);
+        simulationTimerRef.current = null;
+      }
+      return;
+    }
+
+    const { frames, initialValues } = buildSimulationFrames();
+    if (!frames.length) return;
+
+    setNeuronValues(initialValues);
+    setConnectionSignals({});
+    setSimulationFrames(frames);
+    setSimulationIndex(0);
+    setStep(1);
+    setIsRunning(true);
   }
+
+  useEffect(() => {
+    if (!isRunning) return;
+    if (simulationIndex < 0) return;
+
+    if (simulationIndex >= simulationFrames.length) {
+      setIsRunning(false);
+      setConnectionSignals({});
+      setStep(4);
+      setSimulationIndex(-1);
+      if (simulationTimerRef.current) {
+        clearTimeout(simulationTimerRef.current);
+        simulationTimerRef.current = null;
+      }
+      onComplete(90);
+      return;
+    }
+
+    const frame = simulationFrames[simulationIndex];
+    const signalMap: Record<string, number> = {};
+    frame.connections.forEach((conn) => {
+      signalMap[`${conn.from}-${conn.to}`] = Math.abs(conn.signal);
+    });
+    setConnectionSignals(signalMap);
+    setNeuronValues((prev) => ({ ...prev, ...frame.neurons }));
+    setStep(frame.layer);
+
+    if (simulationTimerRef.current) {
+      clearTimeout(simulationTimerRef.current);
+    }
+    const timer = setTimeout(() => {
+      setSimulationIndex((idx) => idx + 1);
+    }, 1200);
+    simulationTimerRef.current = timer;
+
+    return () => {
+      clearTimeout(timer);
+      simulationTimerRef.current = null;
+    };
+  }, [isRunning, simulationIndex, simulationFrames, onComplete]);
 
   function startTraining() {
+    if (simulationTimerRef.current) {
+      clearTimeout(simulationTimerRef.current);
+      simulationTimerRef.current = null;
+    }
+    setIsRunning(false);
+    setSimulationIndex(-1);
+    setSimulationFrames([]);
+    setConnectionSignals({});
     setIsTraining(true);
     setEpoch(0);
     setAccuracy(0);
@@ -310,10 +364,16 @@ export function NeuralNetworkSimulation({ onComplete, accessibilitySettings }: N
   }
 
   function reset() {
+    if (simulationTimerRef.current) {
+      clearTimeout(simulationTimerRef.current);
+      simulationTimerRef.current = null;
+    }
     setIsRunning(false);
+    setSimulationFrames([]);
+    setSimulationIndex(-1);
+    setConnectionSignals({});
     setIsTraining(false);
     setStep(0);
-    setActiveConnections([]);
     setNeuronValues({});
     setSelectedNeuron(null);
     setTrainingProgress(0);
@@ -335,13 +395,15 @@ export function NeuralNetworkSimulation({ onComplete, accessibilitySettings }: N
   }
 
   function getConnectionOpacity(conn: Connection): number {
-    return activeConnections.includes(`${conn.from}-${conn.to}`) ? 1 : 0.2;
+    const key = `${conn.from}-${conn.to}`;
+    return connectionSignals[key] ? 1 : 0.2;
   }
 
   function getConnectionWidth(conn: Connection): number {
-    const baseWidth = Math.abs(conn.weight) * 3 + 1;
-    const signal = conn.signal || 0;
-    return Math.max(1, baseWidth + signal * 2);
+    const key = `${conn.from}-${conn.to}`;
+    const signal = connectionSignals[key] ?? 0;
+    const baseWidth = Math.abs(conn.weight) * 2 + 1.5;
+    return Math.max(1.5, baseWidth + signal * 6);
   }
 
   return (
@@ -534,7 +596,9 @@ export function NeuralNetworkSimulation({ onComplete, accessibilitySettings }: N
               const toNeuron = neurons.find(n => n.id === conn.to);
               if (!fromNeuron || !toNeuron) return null;
 
-              const isActive = activeConnections.includes(`${conn.from}-${conn.to}`);
+              const key = `${conn.from}-${conn.to}`;
+              const signal = connectionSignals[key] ?? 0;
+              const isActive = signal > 0;
               const opacity = getConnectionOpacity(conn);
               const strokeWidth = getConnectionWidth(conn);
               const color = conn.weight > 0 ? '#10b981' : '#ef4444';
@@ -550,12 +614,22 @@ export function NeuralNetworkSimulation({ onComplete, accessibilitySettings }: N
                     strokeWidth={strokeWidth}
                     opacity={opacity}
                     initial={{ pathLength: 0 }}
-                    animate={{ 
-                      pathLength: isActive ? 1 : 0.5,
+                    animate={{
+                      pathLength: isActive ? 1 : 0.4,
                       opacity: opacity
                     }}
                     transition={{ duration: 0.5 }}
                   />
+                  {isActive && (
+                    <motion.circle
+                      key={`${conn.from}-${conn.to}-${simulationIndex}`}
+                      r={Math.max(3, 4 + signal * 4)}
+                      fill={color}
+                      initial={{ cx: fromNeuron.position.x, cy: fromNeuron.position.y, opacity: 0.9 }}
+                      animate={{ cx: toNeuron.position.x, cy: toNeuron.position.y, opacity: [0.9, 1, 0.3] }}
+                      transition={{ duration: 0.8, ease: 'easeInOut' }}
+                    />
+                  )}
                   {showWeights && (
                     <text
                       x={(fromNeuron.position.x + toNeuron.position.x) / 2}

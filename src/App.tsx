@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { ClassificationGame } from './components/modules/ClassificationGame';
 import { RegressionGame } from './components/modules/RegressionGame';
 import { ClusteringGame } from './components/modules/ClusteringGame';
 import { NeuralNetworkSimulation } from './components/modules/NeuralNetworkSimulation';
@@ -29,7 +28,7 @@ import ChatbotFab from './components/ChatbotFab';
 
 function App() {
   const { user, isAuthenticated, login, signup, updateProgress } = useAuth();
-  const [currentView, setCurrentView] = useState<'welcome' | 'modules' | 'classification' | 'regression' | 'clustering' | 'neural-network' | 'introduction' | 'training-lab' | 'accessibility-demo' | 'placement' | 'practice'>('welcome');
+  const [currentView, setCurrentView] = useState<'welcome' | 'modules' | 'regression' | 'clustering' | 'neural-network' | 'introduction' | 'training-lab' | 'accessibility-demo' | 'placement' | 'practice'>('welcome');
   const [completedModules, setCompletedModules] = useState<string[]>([]);
   const [scores, setScores] = useState<Record<string, number>>({});
   const [accessibilitySettings, setAccessibilitySettings] = useState<AccessibilitySettings>(defaultAccessibilitySettings);
@@ -46,11 +45,7 @@ function App() {
       },
       modules: {
         page: 'Module Selection Dashboard',
-        context: 'The user is viewing the main dashboard with all available learning modules: Placement Test, What is AI (Introduction), Sorting Things (Classification), Predicting Numbers (Regression), Pattern Detective (Clustering), Brain Networks (Neural Networks), AI Training Lab, and Practice Mode. They can select any module to start learning.'
-      },
-      classification: {
-        page: 'Classification Game',
-        context: 'The user is learning about classification - how AI sorts and categorizes things into groups (like cats vs dogs, spam vs not spam). This module teaches how computers assign labels to data.'
+        context: 'The user is viewing the main dashboard with all available learning modules: Placement Test, What is AI (Introduction), Predicting Numbers (Regression), Pattern Detective (Clustering), Brain Networks (Neural Networks), AI Training Lab, and Practice Mode. They can select any module to start learning.'
       },
       regression: {
         page: 'Regression Game',
@@ -133,11 +128,6 @@ function App() {
       }
       setScores(prev => ({ ...prev, [moduleId]: score }));
     }
-    
-    // Show completion message and return to modules after a delay
-    setTimeout(() => {
-      setCurrentView('modules');
-    }, 2000);
   };
 
   // Handle different module views
@@ -174,53 +164,6 @@ function App() {
       </div>
     );
   }
-  if (currentView === 'classification') {
-    return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
-        <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
-          <button 
-            onClick={() => setCurrentView('modules')}
-            style={{
-              color: '#4b5563',
-              backgroundColor: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              padding: '0.5rem'
-            }}
-          >
-            ← Back to Modules
-          </button>
-        </div>
-        <ClassificationGame 
-          onComplete={(score) => handleModuleComplete('classification', score)} 
-          accessibilitySettings={accessibilitySettings}
-        />
-        <ChatbotFab 
-          accessibility={accessibilitySettings} 
-          accessibilitySettings={accessibilitySettings}
-          currentPage={getPageContext().page}
-          pageContext={getPageContext().context}
-        />
-
-        {/* Authentication Modal */}
-        <AuthModal
-          isOpen={isAuthModalOpen}
-          onClose={() => setIsAuthModalOpen(false)}
-          onLogin={login}
-          onSignup={signup}
-        />
-
-        {/* User Dashboard */}
-        <UserDashboard
-          isOpen={isUserDashboardOpen}
-          onClose={() => setIsUserDashboardOpen(false)}
-        />
-      </div>
-    );
-  }
-
-
   if (currentView === 'clustering') {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
@@ -1068,93 +1011,6 @@ function App() {
               }}
             >
               Explore
-            </button>
-          </div>
-
-          <div 
-            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
-            style={{
-              backgroundColor: 'white',
-              borderRadius: '0.75rem',
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-              padding: '1.5rem',
-              transition: 'box-shadow 0.3s',
-              position: 'relative'
-            }}
-          >
-            {(isAuthenticated ? user?.progress.moduleProgress['classification']?.completed : completedModules.includes('classification')) && (
-              <div style={{
-                position: 'absolute',
-                top: '1rem',
-                right: '1rem',
-                backgroundColor: '#10b981',
-                color: 'white',
-                borderRadius: '50%',
-                width: '2rem',
-                height: '2rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1rem'
-              }}>
-                ✓
-              </div>
-            )}
-            <div 
-              className="w-16 h-16 bg-blue-500 rounded-lg flex items-center justify-center mb-4"
-              style={{
-                width: '4rem',
-                height: '4rem',
-                backgroundColor: '#3b82f6',
-                borderRadius: '0.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '1rem'
-              }}
-            >
-              <span style={{ color: 'white', fontSize: '1.5rem' }}>🎯</span>
-            </div>
-            <h3 
-              className="text-xl font-semibold text-gray-900 mb-2"
-              style={{
-                fontSize: '1.25rem',
-                fontWeight: '600',
-                color: '#111827',
-                marginBottom: '0.5rem'
-              }}
-            >
-              Sorting Things {(isAuthenticated ? user?.progress.moduleProgress['classification']?.completed : completedModules.includes('classification')) && '🏆'}
-            </h3>
-            <p 
-              className="text-gray-600 mb-4"
-              style={{
-                color: '#4b5563',
-                marginBottom: '1rem'
-              }}
-            >
-              Learn how computers can sort and categorize
-              {(isAuthenticated ? user?.progress.moduleProgress['classification']?.completed : completedModules.includes('classification')) && (
-                <><br /><span style={{ color: '#10b981', fontWeight: '500' }}>
-                  Best Score: {isAuthenticated ? user?.progress.moduleProgress['classification']?.bestScore : scores.classification}%
-                </span></>
-              )}
-            </p>
-            <button 
-              className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-              onClick={() => setCurrentView('classification')}
-              style={{
-                backgroundColor: (isAuthenticated ? user?.progress.moduleProgress['classification']?.completed : completedModules.includes('classification')) ? '#10b981' : '#3b82f6',
-                color: 'white',
-                fontWeight: '500',
-                padding: '0.5rem 1rem',
-                borderRadius: '0.5rem',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s'
-              }}
-            >
-              {(isAuthenticated ? user?.progress.moduleProgress['classification']?.completed : completedModules.includes('classification')) ? 'Play Again' : 'Play Game'}
             </button>
           </div>
 

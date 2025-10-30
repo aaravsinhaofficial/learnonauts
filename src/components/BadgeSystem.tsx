@@ -49,7 +49,7 @@ export function BadgeSystem({ completedModules, scores, children }: BadgeSystemP
       description: 'Score 90% or higher in Classification',
       icon: '🎯',
       color: 'bg-blue-500',
-      requirement: { type: 'score', threshold: 90, module: 'classification' },
+      requirement: { type: 'score', threshold: 90, module: 'regression' },
       earned: false
     },
     {

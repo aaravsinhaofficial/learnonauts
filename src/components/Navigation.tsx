@@ -1,5 +1,5 @@
 import React from 'react';
-import { Brain, Zap, Target, Users, Settings, HelpCircle } from 'lucide-react';
+import { Brain, Zap, Users, Settings, HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 
@@ -16,13 +16,6 @@ const modules = [
     icon: Brain,
     description: 'Discover the magic of artificial intelligence',
     color: 'bg-purple-500'
-  },
-  {
-    id: 'classification',
-    title: 'Sorting Things',
-    icon: Target,
-    description: 'Learn how computers can sort and categorize',
-    color: 'bg-blue-500'
   },
   {
     id: 'regression',

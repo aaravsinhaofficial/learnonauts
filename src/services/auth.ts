@@ -70,23 +70,12 @@ class UserAuthService {
           }
         },
         progress: {
-          totalModulesCompleted: 2,
+          totalModulesCompleted: 1,
           totalTimeSpent: 45,
           currentStreak: 3,
           longestStreak: 7,
           lastActiveDate: new Date(),
           moduleProgress: {
-            'classification': {
-              moduleId: 'classification',
-              completed: true,
-              bestScore: 95,
-              attempts: 3,
-              timeSpent: 15,
-              firstCompletedAt: new Date('2025-01-15'),
-              lastAttemptAt: new Date('2025-01-20'),
-              averageScore: 87,
-              perfectScores: 1
-            },
             'clustering': {
               moduleId: 'clustering',
               completed: true,
