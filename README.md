@@ -1,110 +1,50 @@
-# Learnonauts 🚀
+# Welcome to your Expo app 👋
 
-A drag-and-drop, gamified AI/ML learning platform designed specifically for neurodivergent students.
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## ✨ Features Implemented
+## Get started
 
-### 🎮 Current Functionality
-- **Welcome Screen**: Beautiful gradient welcome screen with smooth animations
-- **Module Dashboard**: Interactive cards showing available learning modules
-- **Classification Game**: Fully functional drag-and-drop game teaching AI classification concepts
-- **Progress Tracking**: Visual indicators for completed modules and scores
-- **Accessibility**: Keyboard navigation support and screen reader friendly
-- **Responsive Design**: Works on various screen sizes including Chromebooks
+1. Install dependencies
 
-### 🧠 Learning Modules
+   ```bash
+   npm install
+   ```
 
-#### 1. Introduction to AI
-- Interactive explanations of AI concepts
-- Visual storytelling about how AI learns
-- Neurodivergent-friendly presentation
+2. Start the app
 
-#### 2. Classification Game (COMPLETE ✓)
-- Drag-and-drop sorting of living vs non-living things
-- Real-time feedback and scoring
-- Visual hover effects and animations
-- Progress tracking and completion badges
+   ```bash
+   npx expo start
+   ```
 
-#### 3. Prediction Module (In Development)
-- Coming soon placeholder with engaging visuals
+In the output, you'll find options to open the app in a
 
-## 🛠️ Technical Stack
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-- **React 18** with TypeScript for type safety
-- **Vite** for fast development and building
-- **@dnd-kit** for accessible drag-and-drop functionality
-- **Lucide React** for beautiful, consistent icons
-- **Tailwind CSS** with inline style fallbacks for reliability
-- **Framer Motion** for smooth animations (where supported)
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-## 🚀 Deployment
+## Get a fresh project
 
-### Quick Deploy to GitHub Pages
-
-The project is **ready for GitHub Pages deployment**! Choose your method:
-
-#### Option 1: Automatic (Recommended) ✨
-```bash
-git add .
-git commit -m "Deploy to GitHub Pages"
-git push
-```
-GitHub Actions will automatically build and deploy!
-
-#### Option 2: Using Deployment Script 🔧
-```bash
-./scripts/deploy.sh
-```
-Interactive deployment with safety checks.
-
-#### Option 3: Manual gh-pages 📦
-```bash
-npm run deploy
-```
-
-### 📚 Deployment Guides
-
-- **[QUICK_DEPLOY.md](./QUICK_DEPLOY.md)** - Fast setup in 5 steps
-- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - Complete documentation
-- **[DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)** - Pre-deployment checklist
-
-### 🔑 Important: API Key Setup
-
-The AI chatbot requires a Gemini API key:
-
-1. Get your API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
-2. Add as GitHub secret: `VITE_GEMINI_API_KEY`
-   - Go to: Settings → Secrets and variables → Actions
-   - Click: New repository secret
-   - Name: `VITE_GEMINI_API_KEY`
-   - Value: Your API key
-
-### 🌐 Live URL
-
-After deployment, your app will be at:
-```
-https://YOUR_USERNAME.github.io/learnonauts/
-```
-
-### 🛠️ Configuration
-
-- **Base path**: Set to `/learnonauts/` in `vite.config.ts`
-- **Build output**: `dist/` directory
-- **GitHub Actions**: `.github/workflows/deploy.yml`
-- **.nojekyll**: Automatically created during build
-
-### Local Development
+When you're ready, run:
 
 ```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
+npm run reset-project
 ```
+
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+
+## Learn more
+
+To learn more about developing your project with Expo, look at the following resources:
+
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+
+## Join the community
+
+Join our community of developers creating universal apps.
+
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
